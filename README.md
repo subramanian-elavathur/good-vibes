@@ -1,2 +1,3 @@
 # good-vibes
-Alicia - A good vibes Node.js testing library
+
+Good Vibes is a Node.js testing library inspired by Alicia Keys Tiny Desk Concert

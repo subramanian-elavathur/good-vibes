@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "outDir": "lib/",
+    "rootDir": "src/",
+    "sourceMap": true,
+    "target": "ES2020",
+    "listEmittedFiles": true,
+    "module": "CommonJS",
+    "declaration": true,
+    "declarationMap": true,
+    "declarationDir": "typings/",
+  }
+}

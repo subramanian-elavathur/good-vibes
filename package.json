@@ -1,0 +1,40 @@
+{
+  "name": "good-vibes",
+  "version": "0.0.1",
+  "description": "Good Vibes is a Node.js testing library inspired by Alicia Keys Tiny Desk Concert",
+  "main": "lib/index.js",
+  "types": "./typings/index.d.ts",
+  "type": "commonjs",
+  "files": [
+    "src/**/*.ts",
+    "lib/**/*.js",
+    "lib/**/*.js.map",
+    "typings/**/*.d.ts",
+    "typings/**/*.d.ts.map"
+  ],
+  "scripts": {
+    "build": "npx tsc",
+    "test": "npm run build && node test/tests.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/subramanian-elavathur/good-vibes.git"
+  },
+  "keywords": [
+    "good-vibes",
+    "good",
+    "vibes",
+    "alicia",
+    "keys"
+  ],
+  "author": "Subramanian Elavathur",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/subramanian-elavathur/good-vibes/issues"
+  },
+  "homepage": "https://github.com/subramanian-elavathur/good-vibes#readme",
+  "devDependencies": {
+    "@types/node": "^16.4.3",
+    "typescript": "^4.3.5"
+  }
+}
