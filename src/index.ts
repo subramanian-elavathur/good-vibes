@@ -54,7 +54,13 @@ const banner = () => {
 const logger = (name: string) => (message: string) =>
   console.log(`Log: ${name}: ${message}`);
 
-const check = (resolve) => (expected, actual) => resolve(expected === actual);
+const check = (resolve, testLogger) => (expected, actual) => {
+  const result = expected === actual;
+  if (!result) {
+    testLogger(`Expected ${expected} to match ${actual}`);
+  }
+  return resolve(result);
+};
 
 export const before = (fn: BeforeAfter, group?: string) => {
   const groupToUpdate = group ?? DEFAULT_TEST_GROUP;
@@ -89,8 +95,9 @@ const runOneTest = async (test: Test): Promise<TestResult> => {
   const startTime = new Date().valueOf();
   let result: TestResult;
   try {
+    const testLogger = logger(test.name);
     const testResults = new Promise<boolean>((resolve) => {
-      test.test(check(resolve), logger(test.name));
+      test.test(check(resolve, testLogger), testLogger);
     });
     result = {
       name: test.name,
