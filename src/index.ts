@@ -1,12 +1,13 @@
-interface Check {
-  (expected: any, actual: any): Promise<boolean>;
-}
+import Verify from "./Verify";
 
+export interface Logger {
+  (message: string): void;
+}
 interface BeforeAfter {
-  (done: () => void, log: (message: string) => void): void;
+  (done: () => void, log: Logger): void;
 }
 interface AsyncTest {
-  (check: Check, log: (message: string) => void): void;
+  (verify: Verify, log: Logger): void;
 }
 
 interface Test {
@@ -51,16 +52,10 @@ const banner = () => {
   }
 };
 
-const logger = (name: string) => (message: string) =>
-  console.log(`Log: ${name}: ${message}`);
-
-const check = (resolve, testLogger) => (expected, actual) => {
-  const result = expected === actual;
-  if (!result) {
-    testLogger(`Expected ${expected} to match ${actual}`);
-  }
-  return resolve(result);
-};
+const logger =
+  (name: string): Logger =>
+  (message) =>
+    console.log(`Log: ${name}: ${message}`);
 
 export const before = (fn: BeforeAfter, group?: string) => {
   const groupToUpdate = group ?? DEFAULT_TEST_GROUP;
@@ -97,7 +92,7 @@ const runOneTest = async (test: Test): Promise<TestResult> => {
   try {
     const testLogger = logger(test.name);
     const testResults = new Promise<boolean>((resolve) => {
-      test.test(check(resolve, testLogger), testLogger);
+      test.test(new Verify(resolve, testLogger), testLogger);
     });
     result = {
       name: test.name,
