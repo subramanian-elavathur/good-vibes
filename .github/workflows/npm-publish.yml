@@ -44,9 +44,11 @@ jobs:
         with:
           node-version: 14
           registry-url: https://npm.pkg.github.com/
-          scope: @subramanian-elavathur
-      - run: npm ci
-      - run: echo "registry=https://npm.pkg.github.com/" >> .npmrc
-      - run: npm publish
+      - run: |
+          sed -i 's,"name": "good-vibes","name": "@subramanian-elavathur/good-vibes",' package.json
+          cat package.json
+        # - run: npm ci
+        # - run: echo "registry=https://npm.pkg.github.com/" >> .npmrc
+        # - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
