@@ -14,4 +14,4 @@ Usage is described in files inside `test` folder
 
 ## Important Note
 
-Hi there, thanks for checking out good-vibes. Until we reach `v1.0.0` the api might change in a breaking manner - but we hope to reach `v1.0.0` fairly quickly
+Hi there, thanks for checking out good-vibes. Until we reach `v1.0.0` the api might change in a breaking manner
