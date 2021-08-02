@@ -33,7 +33,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}
 
   publish-gpr:
-    needs: [build, publish-npm]
+    needs: build
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -45,6 +45,7 @@ jobs:
           node-version: 14
           registry-url: https://npm.pkg.github.com/
       - run: npm ci
+      - run: echo "registry=https://npm.pkg.github.com/@subramanian-elavathur" >> .npmrc
       - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
