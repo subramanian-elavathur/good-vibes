@@ -34,6 +34,7 @@ interface TestResult {
 }
 
 const DEFAULT_TEST_GROUP = "Default";
+const GLOBAL_TIMEOUT = 300_000; // 5 minutes
 
 const testStore: GroupedTests = {
   [DEFAULT_TEST_GROUP]: {
@@ -147,8 +148,20 @@ const runTestsInAGroup = async (group: string): Promise<TestResult[]> => {
   return results.filter((each) => !each.status);
 };
 
-const run = async () => {
+const terminateOnTimeout = (timeout?: number) => {
+  setTimeout(() => {
+    console.log(
+      `\n[TIMEOUT] Global test timeout exceeded ${
+        timeout / 1000
+      } seconds. Exiting.`
+    );
+    process.exit(1);
+  }, timeout ?? GLOBAL_TIMEOUT);
+};
+
+const run = async (timeout?: number) => {
   banner();
+  terminateOnTimeout(timeout);
   const totalTests = Object.values(testStore).reduce(
     (acc, each) => [...acc, ...each.tests],
     []
