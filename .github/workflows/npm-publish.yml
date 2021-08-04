@@ -28,6 +28,7 @@ jobs:
           node-version: 14
           registry-url: https://registry.npmjs.org/
       - run: npm ci
+      - run: npm test
       - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}
@@ -45,6 +46,7 @@ jobs:
           node-version: 14
           registry-url: https://npm.pkg.github.com/
       - run: npm ci
+      - run: npm test
       - run: echo "registry=https://npm.pkg.github.com/" >> .npmrc
       - run: |
           sed -i 's,"name": "good-vibes","name": "@subramanian-elavathur/good-vibes",' package.json
