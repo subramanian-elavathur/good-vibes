@@ -10,6 +10,7 @@ Usage is described in files inside `test` folder
 
 - Simple tests can be found in [test/simple.test.js](./test/simple.test.js)
 - Test grouping with use of `before` and `after` can be found in [test/groups.test.js](./test/groups.test.js)
+- A concise example of groups using the `group` api can be found in [test/concise-groups.test.js](./test/concise-groups.test.js)
 - Examples of failing tests can be found in [test/failing.test.js](./test/failing.test.js)
 
 ## Important Note
