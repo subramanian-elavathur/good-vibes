@@ -58,6 +58,15 @@ const logger =
   (message) =>
     console.log(`Log: ${name}: ${message}`);
 
+export const group = (groupName: string) => {
+  return {
+    before: (fn: BeforeAfter) => before(fn, groupName),
+    test: (name: string, testImplementation: AsyncTest) =>
+      test(name, testImplementation, groupName),
+    after: (fn: BeforeAfter) => after(fn, groupName),
+  };
+};
+
 export const before = (fn: BeforeAfter, group?: string) => {
   const groupToUpdate = group ?? DEFAULT_TEST_GROUP;
   const existingGroup = testStore[groupToUpdate] ?? { tests: [] };
