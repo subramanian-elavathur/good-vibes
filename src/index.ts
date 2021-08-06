@@ -34,6 +34,7 @@ interface TestResult {
 }
 
 const DEFAULT_TEST_GROUP = "Default";
+export const DEBUG = "Debug";
 const GLOBAL_TIMEOUT = 300_000; // 5 minutes
 
 const testStore: GroupedTests = {
@@ -176,28 +177,36 @@ const run = async (timeout?: number) => {
     []
   ).length;
   let failedTests: TestResult[] = [];
-  for (const group in testStore) {
-    if (!testStore[group].tests.length) {
-      continue;
-    }
-    const failedTestsInGroup = await runTestsInAGroup(group);
-    failedTests = [...failedTests, ...failedTestsInGroup];
-  }
-  if (failedTests?.length) {
+  if (testStore[DEBUG]?.tests?.length) {
+    await runTestsInAGroup(DEBUG);
     console.log(
-      `Hey ${failedTests.length}/${totalTests} tests failed, but its going to be ok. Start by going through the list below and adding some logs to figure out whats going wrong:`
-    );
-    failedTests.forEach((each, index) =>
-      console.log(
-        `${index}. [${each.group}] ${each.name} ${
-          each.message ? `(${each.message})` : ""
-        }`
-      )
+      `[Important] Good vibes is running in Debug mode [Important]\n\nDebug mode allows you to run one or more tests to help you debug them easily.\nDebug mode always exits with return code 1 to prevent this change from being accidentally checked in to your codebase.\nSee logs above to find which tests were tagged to 'Debug' group and remove that group tag to resume normal mode.`
     );
     process.exit(1);
+  } else {
+    for (const group in testStore) {
+      if (!testStore[group].tests.length) {
+        continue;
+      }
+      const failedTestsInGroup = await runTestsInAGroup(group);
+      failedTests = [...failedTests, ...failedTestsInGroup];
+    }
+    if (failedTests?.length) {
+      console.log(
+        `Hey ${failedTests.length}/${totalTests} tests failed, but its going to be ok. Start by going through the list below and adding some logs to figure out whats going wrong:`
+      );
+      failedTests.forEach((each, index) =>
+        console.log(
+          `${index}. [${each.group}] ${each.name} ${
+            each.message ? `(${each.message})` : ""
+          }`
+        )
+      );
+      process.exit(1);
+    }
+    console.log(`All ${totalTests} tests passed, good vibes :)`);
+    process.exit(0);
   }
-  console.log(`All ${totalTests} tests passed, good vibes :)`);
-  process.exit(0);
 };
 
 export default run;
