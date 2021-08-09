@@ -26,10 +26,8 @@ test(
   "Jungle",
   (verify) => {
     verify
-      .check(5)
-      .equals(numbers.length)
-      .check("1,2,3,4,5")
-      .equals(numbers.join(","))
+      .check(5, numbers.length)
+      .check("1,2,3,4,5", numbers.join(","))
       .done();
   },
   TASH_SULTANA
@@ -39,10 +37,8 @@ test(
   "Notion",
   (verify) => {
     verify
-      .check(7)
-      .equals(strings.length)
-      .check("this value is set after 2 seconds")
-      .equals(strings.join(" "))
+      .check(7, strings.length)
+      .check("this value is set after 2 seconds", strings.join(" "))
       .done();
   },
   TASH_SULTANA

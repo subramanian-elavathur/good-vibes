@@ -13,7 +13,7 @@ test(
   (verify, log) => {
     setTimeout(() => {
       log("Hurt");
-      verify.check(1).equals(1).done();
+      verify.check(1, 1).done();
     }, 2000);
   },
   DEBUG

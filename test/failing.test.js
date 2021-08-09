@@ -11,7 +11,7 @@ test(
 test(
   "Underdog",
   (v) => {
-    v.check(true).equals(true).done();
+    v.check(true, false).done();
   },
   "Failing Tests"
 );

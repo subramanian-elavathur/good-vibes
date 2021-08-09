@@ -17,10 +17,7 @@ before((done) => {
 });
 
 test("Masego", (verify) => {
-  verify
-    .check("you saw and it hit me like tadow")
-    .equals(strings.join(" "))
-    .done();
+  verify.check("you saw and it hit me like tadow", strings.join(" ")).done();
 });
 
 after((done) => {
