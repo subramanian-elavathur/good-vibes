@@ -1,4 +1,5 @@
 import { Logger } from "./index";
+import * as isEqual from "lodash.isequal";
 
 interface Resolve {
   (result: boolean): void;
@@ -20,7 +21,7 @@ export default class Verify {
   }
 
   check<Type>(expectedValue: Type, actualValue: Type): Verify {
-    const result = expectedValue === actualValue;
+    const result = isEqual(expectedValue, actualValue);
     if (!result) {
       this.#logger(`Expected ${expectedValue} to match ${actualValue}`);
       this.#testStatus = TestStatus.FAILED;
