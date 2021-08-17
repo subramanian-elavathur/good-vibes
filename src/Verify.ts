@@ -44,34 +44,36 @@ export default class Verify {
       return; // no need to re-init
     }
     if (this.#checkpointsDirectoryInitFailed) {
-      console.log(
-        `Failed to init directory in a previous attempt, will not retry`
+      this.#logger(
+        `Failed to create snapshots directory in a previous attempt, will not retry`
       );
       return; // no need to re-init
     }
-    console.log(
-      `Checking if specified path ${this.#checkpointsDirectory} exists`
+    this.#logger(
+      `Checking if specified directory for snapshots ${
+        this.#checkpointsDirectory
+      } exists`
     );
     let stat;
     try {
       stat = await fs.stat(this.#checkpointsDirectory);
     } catch (e) {
-      console.log(`Directory does not exist - will create`);
+      this.#logger(`Snapshots directory does not exist, trying to create now`);
       try {
         await fs.mkdir(this.#checkpointsDirectory, { recursive: true });
-        console.log(`Directory created, lets go!`);
+        this.#logger(`Snapshots directory created, lets go!`);
         this.#checkpointsDirectoryInitCompleted = true;
       } catch (e) {
-        console.log(`Failed to create directory due to error: ${e}`);
+        this.#logger(`Failed to create snapshots directory due to error: ${e}`);
         this.#checkpointsDirectoryInitFailed = true;
       }
     }
     if (stat) {
       if (!stat.isDirectory()) {
-        console.log(
-          `Specified path ${
+        this.#logger(
+          `Specified path for snapshots (${
             this.#checkpointsDirectory
-          } exists but is not a directory`
+          }) exists but is not a directory`
         );
         this.#checkpointsDirectoryInitFailed = true;
       } else {
@@ -85,7 +87,7 @@ export default class Verify {
     return `${this.#checkpointsDirectory}/${assertionName}.json`;
   }
 
-  async snapshot<Type>( // todo: proper error handling and logging
+  async snapshot<Type>(
     assertionName: string,
     actualValue: Type,
     rebase?: boolean
@@ -93,20 +95,34 @@ export default class Verify {
     if (rebase) {
       await this.#initSnapshotsDirectory();
       this.#logger(
-        `Writing baseline for ${assertionName} to ${this.#getSnapshotPath(
+        `Writing snapshot baseline for ${assertionName} to ${this.#getSnapshotPath(
           assertionName
         )}`
       );
-      await fs.writeFile(
-        this.#getSnapshotPath(assertionName),
-        JSON.stringify(actualValue)
-      );
+      try {
+        await fs.writeFile(
+          this.#getSnapshotPath(assertionName),
+          JSON.stringify(actualValue)
+        );
+      } catch (e) {
+        this.#logger(
+          `Failed to write snapshot baseline file due to error, ${e}`
+        );
+      }
       this.#logger(`Failing test in case rebase flag was set by mistake`);
       this.#testStatus = TestStatus.FAILED;
     } else {
-      const data = await fs.readFile(this.#getSnapshotPath(assertionName), {
-        encoding: "utf8",
-      });
+      const snapshotPath = this.#getSnapshotPath(assertionName);
+      let data;
+      try {
+        data = await fs.readFile(snapshotPath, {
+          encoding: "utf8",
+        });
+      } catch (e) {
+        this.#logger(`Could not find snapshot file at path ${snapshotPath}`);
+        this.#testStatus = TestStatus.FAILED;
+        return Promise.resolve(this);
+      }
       const existingValue = JSON.parse(data);
       const diff = Diff.diffJson(existingValue, actualValue);
       if (diff?.length) {
@@ -117,11 +133,12 @@ export default class Verify {
         if (failed) {
           this.#logger("Test failed, please see diff below for details\n");
           diff.forEach((part) => {
-            console.log(
-              `${part.added ? "[ADDED]" : part.removed ? "[REMOVED]" : ""} ${
-                part.value
-              }`
-            );
+            const color = part.added
+              ? "\x1b[32m" // green
+              : part.removed
+              ? "\x1b[31m" // red
+              : "\x1b[0m";
+            console.log(`${color}%s\x1b[0m`, part.value);
           });
           this.#testStatus = TestStatus.FAILED;
         } else {

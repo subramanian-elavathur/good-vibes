@@ -49,7 +49,7 @@ const banner = () => {
   if (!promptPrinted) {
     promptPrinted = true;
     console.log(
-      "\nWelcome to Good VIbes\n\nA Node.js testing library dedicated to Alicia Keys' Tiny Desk Performance\n\nWatch it here: https://www.youtube.com/watch?v=uwUt1fVLb3E\n"
+      "\nWelcome to Good Vibes\n\nA Node.js testing library dedicated to Alicia Keys' Tiny Desk Performance\n\nWatch it here: https://www.youtube.com/watch?v=uwUt1fVLb3E\n"
     );
   }
 };
