@@ -7,3 +7,9 @@ require("./snapshot.test");
 const run = require("../lib/index").default;
 
 run();
+
+// Possible options to run command include
+// {
+//   timeout: 1000, // in milliseconds
+//   snapshotsDirectory: "path", // string
+// }

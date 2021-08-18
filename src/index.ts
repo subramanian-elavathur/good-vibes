@@ -33,6 +33,11 @@ interface TestResult {
   message?: string;
 }
 
+interface Options {
+  timeout?: number;
+  snapshotsDirectory?: string;
+}
+
 const DEFAULT_TEST_GROUP = "Default";
 export const DEBUG = "Debug";
 const GLOBAL_TIMEOUT = 300_000; // 5 minutes
@@ -96,14 +101,20 @@ export const test = (
   };
 };
 
-const runOneTest = async (test: Test): Promise<TestResult> => {
+const runOneTest = async (
+  test: Test,
+  options?: Options
+): Promise<TestResult> => {
   console.log(`Running: ${test.name}`);
   const startTime = new Date().valueOf();
   let result: TestResult;
   try {
     const testLogger = logger(test.name);
     const testResults = new Promise<boolean>((resolve) => {
-      test.test(new Verify(resolve, testLogger), testLogger);
+      test.test(
+        new Verify(resolve, testLogger, options?.snapshotsDirectory),
+        testLogger
+      );
     });
     result = {
       name: test.name,
@@ -140,7 +151,10 @@ const runBeforeOrAfter = async (
   });
 };
 
-const runTestsInAGroup = async (group: string): Promise<TestResult[]> => {
+const runTestsInAGroup = async (
+  group: string,
+  options?: Options
+): Promise<TestResult[]> => {
   const { before, tests, after } = testStore[group];
   console.log(`Running ${tests.length} tests from ${group} group\n`);
   if (before) {
@@ -148,7 +162,9 @@ const runTestsInAGroup = async (group: string): Promise<TestResult[]> => {
     await runBeforeOrAfter(before, logger("Before"));
     console.log(`Finished: Before script\n`);
   }
-  const results = await Promise.all(tests.map(runOneTest));
+  const results = await Promise.all(
+    tests.map((each) => runOneTest(each, options))
+  );
   if (after) {
     console.log(`\nRunning: After script`);
     await runBeforeOrAfter(after, logger("After"));
@@ -169,16 +185,16 @@ const terminateOnTimeout = (timeout?: number) => {
   }, timeout ?? GLOBAL_TIMEOUT);
 };
 
-const run = async (timeout?: number) => {
+const run = async (options?: Options) => {
   banner();
-  terminateOnTimeout(timeout);
+  terminateOnTimeout(options?.timeout);
   const totalTests = Object.values(testStore).reduce(
     (acc, each) => [...acc, ...each.tests],
     []
   ).length;
   let failedTests: TestResult[] = [];
   if (testStore[DEBUG]?.tests?.length) {
-    await runTestsInAGroup(DEBUG);
+    await runTestsInAGroup(DEBUG, options);
     console.log(
       `[Important] Good vibes is running in Debug mode [Important]\n\nDebug mode allows you to run one or more tests to help you debug them easily.\nDebug mode always exits with return code 1 to prevent this change from being accidentally checked in to your codebase.\nSee logs above to find which tests were tagged to 'Debug' group and remove that group tag to resume normal mode.`
     );
@@ -188,7 +204,7 @@ const run = async (timeout?: number) => {
       if (!testStore[group].tests.length) {
         continue;
       }
-      const failedTestsInGroup = await runTestsInAGroup(group);
+      const failedTestsInGroup = await runTestsInAGroup(group, options);
       failedTests = [...failedTests, ...failedTestsInGroup];
     }
     if (failedTests?.length) {

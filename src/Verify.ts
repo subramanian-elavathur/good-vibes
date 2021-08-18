@@ -16,16 +16,16 @@ export default class Verify {
   #resolve: Resolve;
   #testStatus: TestStatus;
   #logger: Logger;
-  #checkpointsDirectory: string;
-  #checkpointsDirectoryInitCompleted: boolean;
-  #checkpointsDirectoryInitFailed: boolean;
+  #snapshotsDirectory: string;
+  #snapshotsDirectoryInitCompleted: boolean;
+  #snapshotsDirectoryInitFailed: boolean;
 
-  constructor(resolve: Resolve, logger: Logger) {
+  constructor(resolve: Resolve, logger: Logger, snapshotsDirectory?: string) {
     this.#resolve = resolve;
     this.#logger = logger;
-    this.#checkpointsDirectory = "./__snapshots__"; // todo: make configurable
-    this.#checkpointsDirectoryInitCompleted = false;
-    this.#checkpointsDirectoryInitFailed = false;
+    this.#snapshotsDirectory = snapshotsDirectory ?? "./test/__snapshots__";
+    this.#snapshotsDirectoryInitCompleted = false;
+    this.#snapshotsDirectoryInitFailed = false;
   }
 
   check<Type>(expectedValue: Type, actualValue: Type): Verify {
@@ -40,10 +40,10 @@ export default class Verify {
   }
 
   async #initSnapshotsDirectory() {
-    if (this.#checkpointsDirectoryInitCompleted) {
+    if (this.#snapshotsDirectoryInitCompleted) {
       return; // no need to re-init
     }
-    if (this.#checkpointsDirectoryInitFailed) {
+    if (this.#snapshotsDirectoryInitFailed) {
       this.#logger(
         `Failed to create snapshots directory in a previous attempt, will not retry`
       );
@@ -51,40 +51,40 @@ export default class Verify {
     }
     this.#logger(
       `Checking if specified directory for snapshots ${
-        this.#checkpointsDirectory
+        this.#snapshotsDirectory
       } exists`
     );
     let stat;
     try {
-      stat = await fs.stat(this.#checkpointsDirectory);
+      stat = await fs.stat(this.#snapshotsDirectory);
     } catch (e) {
       this.#logger(`Snapshots directory does not exist, trying to create now`);
       try {
-        await fs.mkdir(this.#checkpointsDirectory, { recursive: true });
+        await fs.mkdir(this.#snapshotsDirectory, { recursive: true });
         this.#logger(`Snapshots directory created, lets go!`);
-        this.#checkpointsDirectoryInitCompleted = true;
+        this.#snapshotsDirectoryInitCompleted = true;
       } catch (e) {
         this.#logger(`Failed to create snapshots directory due to error: ${e}`);
-        this.#checkpointsDirectoryInitFailed = true;
+        this.#snapshotsDirectoryInitFailed = true;
       }
     }
     if (stat) {
       if (!stat.isDirectory()) {
         this.#logger(
           `Specified path for snapshots (${
-            this.#checkpointsDirectory
+            this.#snapshotsDirectory
           }) exists but is not a directory`
         );
-        this.#checkpointsDirectoryInitFailed = true;
+        this.#snapshotsDirectoryInitFailed = true;
       } else {
         console.log(`Directory already exists, lets go!`);
-        this.#checkpointsDirectoryInitCompleted = true;
+        this.#snapshotsDirectoryInitCompleted = true;
       }
     }
   }
 
   #getSnapshotPath(assertionName: string): string {
-    return `${this.#checkpointsDirectory}/${assertionName}.json`;
+    return `${this.#snapshotsDirectory}/${assertionName}.json`;
   }
 
   async snapshot<Type>(
