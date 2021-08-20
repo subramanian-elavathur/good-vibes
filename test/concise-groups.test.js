@@ -10,10 +10,8 @@ const { before, test, after } = group(FKJ);
 let strings;
 
 before((done) => {
-  setTimeout(() => {
-    strings = ["you", "saw", "and", "it", "hit", "me", "like", "tadow"];
-    done();
-  }, 2000);
+  strings = ["you", "saw", "and", "it", "hit", "me", "like", "tadow"];
+  done();
 });
 
 test("Masego", (verify) => {

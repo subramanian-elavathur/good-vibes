@@ -17,6 +17,7 @@ interface Test {
 }
 
 interface TestGroup {
+  sync?: boolean;
   before?: BeforeAfter;
   after?: BeforeAfter;
   tests: Test[];
@@ -70,7 +71,14 @@ export const group = (groupName: string) => {
     test: (name: string, testImplementation: AsyncTest) =>
       test(name, testImplementation, groupName),
     after: (fn: BeforeAfter) => after(fn, groupName),
+    sync: () => sync(groupName),
   };
+};
+
+export const sync = (group?: string) => {
+  const groupToUpdate = group ?? DEFAULT_TEST_GROUP;
+  const existingGroup = testStore[groupToUpdate] ?? { tests: [] };
+  testStore[groupToUpdate] = { ...existingGroup, sync: true };
 };
 
 export const before = (fn: BeforeAfter, group?: string) => {
@@ -155,16 +163,28 @@ const runTestsInAGroup = async (
   group: string,
   options?: Options
 ): Promise<TestResult[]> => {
-  const { before, tests, after } = testStore[group];
-  console.log(`Running ${tests.length} tests from ${group} group\n`);
+  const { before, tests, after, sync } = testStore[group];
+  console.log(
+    `Running ${tests.length} tests from ${group} group${
+      sync ? " in synchronous mode" : ""
+    }\n`
+  );
   if (before) {
     console.log(`Running: Before script`);
     await runBeforeOrAfter(before, logger("Before"));
     console.log(`Finished: Before script\n`);
   }
-  const results = await Promise.all(
-    tests.map((each) => runOneTest(each, options))
-  );
+
+  let results: TestResult[] = [];
+  if (sync) {
+    for (const test of tests) {
+      const result = await runOneTest(test, options);
+      results.push(result);
+    }
+  } else {
+    results = await Promise.all(tests.map((each) => runOneTest(each, options)));
+  }
+
   if (after) {
     console.log(`\nRunning: After script`);
     await runBeforeOrAfter(after, logger("After"));
