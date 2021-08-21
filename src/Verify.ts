@@ -13,6 +13,8 @@ enum TestStatus {
 }
 
 export default class Verify {
+  #testName: string;
+  #groupName: string;
   #resolve: Resolve;
   #testStatus: TestStatus;
   #logger: Logger;
@@ -20,10 +22,19 @@ export default class Verify {
   #snapshotsDirectoryInitCompleted: boolean;
   #snapshotsDirectoryInitFailed: boolean;
 
-  constructor(resolve: Resolve, logger: Logger, snapshotsDirectory?: string) {
+  constructor(
+    testName: string,
+    groupName: string,
+    resolve: Resolve,
+    logger: Logger,
+    snapshotsDirectory?: string
+  ) {
+    this.#testName = testName;
+    this.#groupName = groupName;
     this.#resolve = resolve;
     this.#logger = logger;
-    this.#snapshotsDirectory = snapshotsDirectory ?? "./test/__snapshots__";
+    this.#snapshotsDirectory =
+      snapshotsDirectory ?? `./test/__snapshots__/${this.#groupName}`;
     this.#snapshotsDirectoryInitCompleted = false;
     this.#snapshotsDirectoryInitFailed = false;
   }
@@ -84,7 +95,9 @@ export default class Verify {
   }
 
   #getSnapshotPath(assertionName: string): string {
-    return `${this.#snapshotsDirectory}/${assertionName}.json`;
+    return `${this.#snapshotsDirectory}/${
+      this.#testName
+    }_${assertionName}.json`;
   }
 
   async snapshot<Type>(

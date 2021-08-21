@@ -120,7 +120,13 @@ const runOneTest = async (
     const testLogger = logger(test.name);
     const testResults = new Promise<boolean>((resolve) => {
       test.test(
-        new Verify(resolve, testLogger, options?.snapshotsDirectory),
+        new Verify(
+          test.name,
+          test.group,
+          resolve,
+          testLogger,
+          options?.snapshotsDirectory
+        ),
         testLogger
       );
     });
