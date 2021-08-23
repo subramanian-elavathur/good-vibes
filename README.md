@@ -33,6 +33,7 @@ export codeToTest;
 Here is how you would write a test using good-vibes for this function
 
 ```javascript
+// defined in ./code.test.js
 import { codeToTest } from "./code";
 import { test, run } from "good-vibes";
 // alternatively `const { test, run } = require('good-vibes');
@@ -50,7 +51,9 @@ test("My first test", (verify, log) => {
 run(); // runs all your tests defined using the `test` api
 ```
 
-Lets explain what the above code does
+## Lets now explain what the above code does
+
+### `test`
 
 The `test` function allows you to define a test. It has the following signature:
 
@@ -58,9 +61,13 @@ The `test` function allows you to define a test. It has the following signature:
 test("name", testFunction, "groupName");
 ```
 
-`name` is the name of your test.
+#### `name`
 
-`testFunction` expects a function with the following signature:
+Name of your test
+
+#### `testFunction`
+
+Expects a function with the following signature:
 
 ```javascript
 const testFunction = (verify, log) => {
@@ -70,15 +77,47 @@ const testFunction = (verify, log) => {
 };
 ```
 
-`verify` is a simple assertion framework that provides the following api's:
+##### `verify`
+
+A simple assertion framework that provides the following api's:
 
 1. `check(expected, actual)`: uses [lodash.isEqual](https://lodash.com/docs/#isEqual) to perform deep equality checks on primitives and objects and more
 2. `done()`: marks test as complete
 3. `snapshot(name, actual)`: allows for snapshot testing, discussed later in this guide
 
-`log(message)` provides a simple wrapper over `console.log` with the test name prefixed to your message to make them easier to find in the logs
+##### `log(message)`
 
-`groupName` allows you to create a group of tests. More on this below. If not specified the test is assiged to the `Default` group.
+log provides a simple wrapper over `console.log` with the test name prefixed to your message to make them easier to find in the logs
+
+#### `groupName`
+
+Allows you to create a group of tests. More on this below. If not specified the test is assiged to the `Default` group.
+
+## Asynchronous Testing
+
+All tests defined using `test` are considered to be asynchronous function. This is the reason you need to tell good-vibes that your test is complete by calling the `verify.done()` api.
+
+Here is an example of an asynchronous test
+
+```javascript
+// defined in ./async.test.js
+import { test, run } from "good-vibes";
+
+const sayGreeting = async (message) => {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => resolve(`Hello, ${message}`), 2000); // resolve value after 2 seconds
+  });
+};
+
+test("Async Test", async (verify) => {
+  // note the async declaration
+  const actual = await sayGreeting("World!"); // waiting for result
+  verify.check("Hello, World!", actual);
+  verify.done(); // mark test as complete
+});
+
+run(); // runs all your tests defined using the `test` api
+```
 
 ## Examples
 
