@@ -119,6 +119,68 @@ test("Async Test", async (verify) => {
 run(); // runs all your tests defined using the `test` api
 ```
 
+## Grouping tests
+
+The `test` api supports `groupName` as the third argument which allows you to groups similar tests together. Groups have the following features:
+
+1. Groups always run sequentially one after the other
+   1. All tests inside the group must finish before next group starts
+   2. Tests inside a group run concurrently (unless `sync` is called)
+2. Groups can have setup and teardown code defined using `before` and `after` api
+
+### Example
+
+```javascript
+import { before, test, after, run } from "good-vibes";
+
+const MY_GROUP = "My Group";
+
+let numbers;
+let strings;
+
+before((done, log) => {
+  numbers = [1, 2, 3, 4, 5];
+  setTimeout(() => {
+    strings = ["this", "value", "is", "set", "after", "2", "seconds"];
+    done(); // dont forget to call done
+  }, 2000);
+}, MY_GROUP);
+
+test(
+  "My Test",
+  (v) => {
+    v.check(5, numbers.length)
+      .check("1,2,3,4,5", numbers.join(","))
+      .check(7, strings.length)
+      .check("this value is set after 2 seconds", strings.join(" "))
+      .done();
+  },
+  MY_GROUP
+);
+
+after((done, log) => {
+  numbers = undefined;
+  strings = undefined;
+  done();
+}, MY_GROUP); // group name is important so dont forget it :)
+```
+
+### `before`
+
+`before` function always runs once before all tests.
+
+### After
+
+### Concise Groups
+
+## Snapshot Testing
+
+## Synchronous Testing
+
+## Debugging
+
+## Code Coverage
+
 ## Examples
 
 - Simple tests can be found in [test/simple.test.js](./test/simple.test.js)
