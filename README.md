@@ -165,22 +165,6 @@ after((done, log) => {
 }, MY_GROUP); // group name is important so dont forget it :)
 ```
 
-### `before`
-
-`before` function always runs once before all tests.
-
-### After
-
-### Concise Groups
-
-## Snapshot Testing
-
-## Synchronous Testing
-
-## Debugging
-
-## Code Coverage
-
 ## Examples
 
 - Simple tests can be found in [test/simple.test.js](./test/simple.test.js)
