@@ -71,7 +71,7 @@ export const group = (groupName: string) => {
     test: (
       name: string,
       testImplementation: AsyncTest,
-      overriddenGroupName: string // to allow for debugging
+      overriddenGroupName?: string // to allow for debugging
     ) => test(name, testImplementation, overriddenGroupName ?? groupName),
     after: (fn: BeforeAfter) => after(fn, groupName),
     sync: () => sync(groupName),
