@@ -67,13 +67,15 @@ const logger =
 
 export const group = (groupName: string) => {
   return {
-    before: (fn: BeforeAfter) => before(fn, groupName),
+    before: (fn: BeforeAfter, overriddenGroupName?: string) =>
+      before(fn, overriddenGroupName ?? groupName),
     test: (
       name: string,
       testImplementation: AsyncTest,
       overriddenGroupName?: string // to allow for debugging
     ) => test(name, testImplementation, overriddenGroupName ?? groupName),
-    after: (fn: BeforeAfter) => after(fn, groupName),
+    after: (fn: BeforeAfter, overriddenGroupName?: string) =>
+      after(fn, overriddenGroupName ?? groupName),
     sync: () => sync(groupName),
   };
 };

@@ -163,6 +163,72 @@ after((done, log) => {
   strings = undefined;
   done();
 }, MY_GROUP); // group name is important so dont forget it :)
+
+run();
+```
+
+### `before`
+
+`before` function runs once before all tests and has the following signature
+
+```javascript
+before(beforeFunction, groupName); // groupName defaults to 'Default' group
+```
+
+#### beforeFunction
+
+`beforeFunction` has the following signature
+
+```javascript
+const beforeFunction = async (done, log) => {
+  // perform your test setup here
+  // call done() once complete
+};
+```
+
+### `after`
+
+`after` function runs once before after tests and has the same signature as `before`
+
+### Concise Groups
+
+It can sometimes be verbose to have to specify the group name in each of `before`, `after` and `test` api calls. To make this easier good-vibes provides the `group` api which wraps all api's with the specified group name.
+
+Lets rewrite the above example now using the `group` api.
+
+```javascript
+import { group } from "good-vibes";
+
+const MY_GROUP = "My Group";
+
+const { before, test, after } = group(MY_GROUP); // wrap good-vibes api's with MY_GROUP groupName
+
+let numbers;
+let strings;
+
+before((done, log) => {
+  numbers = [1, 2, 3, 4, 5];
+  setTimeout(() => {
+    strings = ["this", "value", "is", "set", "after", "2", "seconds"];
+    done();
+  }, 2000);
+});
+
+test("My Test", (v) => {
+  v.check(5, numbers.length)
+    .check("1,2,3,4,5", numbers.join(","))
+    .check(7, strings.length)
+    .check("this value is set after 2 seconds", strings.join(" "))
+    .done();
+});
+
+after((done, log) => {
+  numbers = undefined;
+  strings = undefined;
+  done();
+});
+
+run();
 ```
 
 ## Examples
