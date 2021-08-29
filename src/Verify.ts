@@ -42,7 +42,11 @@ export default class Verify {
   check<Type>(expectedValue: Type, actualValue: Type): Verify {
     const result = isEqual(expectedValue, actualValue);
     if (!result) {
-      this.#logger(`Expected ${expectedValue} to match ${actualValue}`);
+      this.#logger(
+        `Expected ${JSON.stringify(expectedValue)} to match ${JSON.stringify(
+          actualValue
+        )}`
+      );
       this.#testStatus = TestStatus.FAILED;
     } else {
       this.#testStatus = TestStatus.PASSED;
