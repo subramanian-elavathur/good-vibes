@@ -1,17 +1,17 @@
 const { test } = require("../lib/index");
 
-test("Gramercy Park", (verify, log) => {
+test("Gramercy Park", (ctx) => {
   setTimeout(() => {
-    log("Just good vibes");
-    verify
-      // verify.check performs a deep equality check using lodash.isequal package
+    ctx.log("Just good vibes");
+    ctx
+      // context.check performs a deep equality check using lodash.isequal package
       .check({ a: { b: 2, c: [1, 2, 3, 4] } }, { a: { b: 2, c: [1, 2, 3, 4] } })
       .done();
   }, 2000);
 });
 
-test("Fallin", (v) => {
+test("Fallin", (ctx) => {
   setTimeout(() => {
-    v.check(true, true).done();
+    ctx.check(true, true).done();
   });
 });

@@ -1,13 +1,10 @@
-import Verify from "./Verify";
+import { Context, VerifiableContext, Logger } from "./Context";
 
-export interface Logger {
-  (message: string): void;
-}
 interface BeforeAfter {
-  (done: () => void, log: Logger): void;
+  (context: Context): void;
 }
 interface AsyncTest {
-  (verify: Verify, log: Logger): void;
+  (context: VerifiableContext): void;
 }
 
 interface Test {
@@ -59,11 +56,6 @@ const banner = () => {
     );
   }
 };
-
-const logger =
-  (name: string): Logger =>
-  (message) =>
-    console.log(`Log: ${name}: ${message}`);
 
 export const group = (groupName: string) => {
   return {
@@ -122,17 +114,14 @@ const runOneTest = async (
   const startTime = new Date().valueOf();
   let result: TestResult;
   try {
-    const testLogger = logger(test.name);
     const testResults = new Promise<boolean>((resolve) => {
       test.test(
-        new Verify(
+        new VerifiableContext(
           test.name,
           test.group,
           resolve,
-          testLogger,
           options?.snapshotsDirectory
-        ),
-        testLogger
+        )
       );
     });
     result = {
@@ -159,11 +148,11 @@ const runOneTest = async (
 
 const runBeforeOrAfter = async (
   beforeAfter: BeforeAfter,
-  log: (message: string) => void
+  name: string
 ): Promise<boolean> => {
   return new Promise((resolve) => {
     try {
-      beforeAfter(() => resolve(true), log);
+      beforeAfter(new Context(name, () => resolve(true)));
     } catch {
       resolve(false);
     }
@@ -182,7 +171,7 @@ const runTestsInAGroup = async (
   );
   if (before) {
     console.log(`Running: Before script`);
-    await runBeforeOrAfter(before, logger("Before"));
+    await runBeforeOrAfter(before, "Before");
     console.log(`Finished: Before script\n`);
   }
 
@@ -198,7 +187,7 @@ const runTestsInAGroup = async (
 
   if (after) {
     console.log(`\nRunning: After script`);
-    await runBeforeOrAfter(after, logger("After"));
+    await runBeforeOrAfter(after, "After");
     console.log(`Finished: After script`);
   }
   console.log(`\nFinished running ${tests.length} tests from ${group} group\n`);

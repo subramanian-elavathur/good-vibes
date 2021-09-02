@@ -11,31 +11,31 @@ const { before, test, after, sync } = group(UNDERDOG);
 
 let strings;
 
-before((done) => {
+before((ctx) => {
   strings = ["good"];
-  done();
+  ctx.done();
 });
 
 sync(); // before and after always run synchronously
 
-test("good vibes", (verify) => {
+test("good vibes", (ctx) => {
   strings.push("vibes");
-  verify.check("good vibes", strings.join(" ")).done();
+  ctx.check("good vibes", strings.join(" ")).done();
 });
 
-test("good vibes all", (verify) => {
+test("good vibes all", (ctx) => {
   setTimeout(() => {
     strings.push("all");
-    verify.check("good vibes all", strings.join(" ")).done();
+    ctx.check("good vibes all", strings.join(" ")).done();
   }, 2000);
 });
 
-test("good vibes all around", (verify) => {
+test("good vibes all around", (ctx) => {
   strings.push("around");
-  verify.check("good vibes all around", strings.join(" ")).done();
+  ctx.check("good vibes all around", strings.join(" ")).done();
 });
 
-after((done) => {
+after((ctx) => {
   strings = undefined;
-  done();
+  ctx.done();
 });

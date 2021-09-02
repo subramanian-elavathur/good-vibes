@@ -231,6 +231,26 @@ after((done, log) => {
 run();
 ```
 
+## Snapshot Testing
+
+Sometimes the output of a function can be very large - making it cumbersome to test using the `verify.check` api. To help with this good-vibes supports snapshot testing.
+
+Snapshot tests allow you test for changes in the expected output. They do this by maintaining a `baseline` file with the expected output. Then whenever you run your test the actual output is compared against this baseline file and if they don't match the differences are reported as shown below:
+
+### Creating a baseline (or updating existing baseline)
+
+### Snapshots directory structure
+
+### Running your test
+
+## Synchronous Testing
+
+## Timeout
+
+## Debugging
+
+## Code Coverage
+
 ## Examples
 
 - Simple tests can be found in [test/simple.test.js](./test/simple.test.js)

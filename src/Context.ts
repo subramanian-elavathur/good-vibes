@@ -1,8 +1,15 @@
-import { Logger } from "./index";
 import * as isEqual from "lodash.isequal";
 import * as fs from "fs/promises";
 import * as Diff from "diff";
 
+export interface Logger {
+  (message: string): void;
+}
+
+const createLogger =
+  (name: string): Logger =>
+  (message) =>
+    console.log(`Log: ${name}: ${message}`);
 interface Resolve {
   (result: boolean): void;
 }
@@ -12,13 +19,30 @@ enum TestStatus {
   PASSED,
 }
 
-export default class Verify {
-  #testName: string;
+export class Context {
+  readonly name: string;
+  readonly resolve: Resolve;
+  readonly logger: Logger;
+
+  constructor(name: string, resolve: Resolve) {
+    this.name = name;
+    this.resolve = resolve;
+    this.logger = createLogger(name);
+  }
+
+  log(message: string) {
+    this.logger(message);
+  }
+
+  done() {
+    this.resolve(true);
+  }
+}
+
+export class VerifiableContext extends Context {
   #groupName: string;
-  #resolve: Resolve;
   #testStatus: TestStatus;
-  #logger: Logger;
-  #snapshotsDirectory: string;
+  readonly snapshotsDirectory: string;
   #snapshotsDirectoryInitCompleted: boolean;
   #snapshotsDirectoryInitFailed: boolean;
 
@@ -26,23 +50,20 @@ export default class Verify {
     testName: string,
     groupName: string,
     resolve: Resolve,
-    logger: Logger,
     snapshotsDirectory?: string
   ) {
-    this.#testName = testName;
+    super(testName, resolve);
     this.#groupName = groupName;
-    this.#resolve = resolve;
-    this.#logger = logger;
-    this.#snapshotsDirectory =
+    this.snapshotsDirectory =
       snapshotsDirectory ?? `./test/__snapshots__/${this.#groupName}`;
     this.#snapshotsDirectoryInitCompleted = false;
     this.#snapshotsDirectoryInitFailed = false;
   }
 
-  check<Type>(expectedValue: Type, actualValue: Type): Verify {
+  check<Type>(expectedValue: Type, actualValue: Type): VerifiableContext {
     const result = isEqual(expectedValue, actualValue);
     if (!result) {
-      this.#logger(
+      this.logger(
         `Expected ${JSON.stringify(expectedValue)} to match ${JSON.stringify(
           actualValue
         )}`
@@ -59,36 +80,32 @@ export default class Verify {
       return; // no need to re-init
     }
     if (this.#snapshotsDirectoryInitFailed) {
-      this.#logger(
+      this.logger(
         `Failed to create snapshots directory in a previous attempt, will not retry`
       );
       return; // no need to re-init
     }
-    this.#logger(
-      `Checking if specified directory for snapshots ${
-        this.#snapshotsDirectory
-      } exists`
+    this.logger(
+      `Checking if specified directory for snapshots ${this.snapshotsDirectory} exists`
     );
     let stat;
     try {
-      stat = await fs.stat(this.#snapshotsDirectory);
+      stat = await fs.stat(this.snapshotsDirectory);
     } catch (e) {
-      this.#logger(`Snapshots directory does not exist, trying to create now`);
+      this.logger(`Snapshots directory does not exist, trying to create now`);
       try {
-        await fs.mkdir(this.#snapshotsDirectory, { recursive: true });
-        this.#logger(`Snapshots directory created, lets go!`);
+        await fs.mkdir(this.snapshotsDirectory, { recursive: true });
+        this.logger(`Snapshots directory created, lets go!`);
         this.#snapshotsDirectoryInitCompleted = true;
       } catch (e) {
-        this.#logger(`Failed to create snapshots directory due to error: ${e}`);
+        this.logger(`Failed to create snapshots directory due to error: ${e}`);
         this.#snapshotsDirectoryInitFailed = true;
       }
     }
     if (stat) {
       if (!stat.isDirectory()) {
-        this.#logger(
-          `Specified path for snapshots (${
-            this.#snapshotsDirectory
-          }) exists but is not a directory`
+        this.logger(
+          `Specified path for snapshots (${this.snapshotsDirectory}) exists but is not a directory`
         );
         this.#snapshotsDirectoryInitFailed = true;
       } else {
@@ -99,19 +116,17 @@ export default class Verify {
   }
 
   #getSnapshotPath(assertionName: string): string {
-    return `${this.#snapshotsDirectory}/${
-      this.#testName
-    }_${assertionName}.json`;
+    return `${this.snapshotsDirectory}/${this.name}_${assertionName}.json`;
   }
 
   async snapshot<Type>(
     assertionName: string,
     actualValue: Type,
     rebase?: boolean
-  ): Promise<Verify> {
+  ): Promise<VerifiableContext> {
     if (rebase) {
       await this.#initSnapshotsDirectory();
-      this.#logger(
+      this.logger(
         `Writing snapshot baseline for ${assertionName} to ${this.#getSnapshotPath(
           assertionName
         )}`
@@ -122,11 +137,11 @@ export default class Verify {
           JSON.stringify(actualValue)
         );
       } catch (e) {
-        this.#logger(
+        this.logger(
           `Failed to write snapshot baseline file due to error, ${e}`
         );
       }
-      this.#logger(`Failing test in case rebase flag was set by mistake`);
+      this.logger(`Failing test in case rebase flag was set by mistake`);
       this.#testStatus = TestStatus.FAILED;
     } else {
       const snapshotPath = this.#getSnapshotPath(assertionName);
@@ -136,7 +151,7 @@ export default class Verify {
           encoding: "utf8",
         });
       } catch (e) {
-        this.#logger(`Could not find snapshot file at path ${snapshotPath}`);
+        this.logger(`Could not find snapshot file at path ${snapshotPath}`);
         this.#testStatus = TestStatus.FAILED;
         return Promise.resolve(this);
       }
@@ -148,7 +163,7 @@ export default class Verify {
           return failed;
         }, false);
         if (failed) {
-          this.#logger("Test failed, please see diff below for details\n");
+          this.logger("Test failed, please see diff below for details\n");
           diff.forEach((part) => {
             const color = part.added
               ? "\x1b[32m" // green
@@ -162,7 +177,7 @@ export default class Verify {
           this.#testStatus = TestStatus.PASSED;
         }
       } else {
-        this.#logger(
+        this.logger(
           "Test failed as baseline was empty, run with rebase flag set to true to generate file"
         );
         this.#testStatus = TestStatus.FAILED;
@@ -172,6 +187,6 @@ export default class Verify {
   }
 
   done() {
-    this.#resolve(this.#testStatus === TestStatus.PASSED);
+    this.resolve(this.#testStatus === TestStatus.PASSED);
   }
 }

@@ -9,16 +9,16 @@ const { before, test, after } = group(FKJ);
 
 let strings;
 
-before((done) => {
+before((ctx) => {
   strings = ["you", "saw", "and", "it", "hit", "me", "like", "tadow"];
-  done();
+  ctx.done();
 });
 
-test("Masego", (verify) => {
-  verify.check("you saw and it hit me like tadow", strings.join(" ")).done();
+test("Masego", (ctx) => {
+  ctx.check("you saw and it hit me like tadow", strings.join(" ")).done();
 });
 
-after((done) => {
+after((ctx) => {
   strings = undefined;
-  done();
+  ctx.done();
 });

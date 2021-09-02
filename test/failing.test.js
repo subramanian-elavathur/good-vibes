@@ -10,8 +10,8 @@ test(
 
 test(
   "Underdog",
-  (v) => {
-    v.check(true, false).done();
+  (ctx) => {
+    ctx.check(true, false).done();
   },
   "Failing Tests"
 );
