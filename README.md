@@ -38,14 +38,14 @@ import { codeToTest } from "./code";
 import { test, run } from "good-vibes";
 // alternatively `const { test, run } = require('good-vibes');
 
-test("My first test", (verify, log) => {
+test("My first test", (context) => {
   const expected = {
     name: { first: "Hello", last: "World" },
     age: 999,
   };
-  log("Lets do this!");
-  verify.check(expected, codeToTest("Hello", "World", 999));
-  verify.done();
+  context.log("Lets do this!");
+  context.check(expected, codeToTest("Hello", "World", 999));
+  context.done();
 });
 
 run(); // runs all your tests defined using the `test` api
@@ -70,24 +70,21 @@ Name of your test
 Expects a function with the following signature:
 
 ```javascript
-const testFunction = (verify, log) => {
+const testFunction = (context) => {
   // run your code
-  // make assertions using verify.check(expected, actual)
-  // mark test as complete using verify.done()
+  // make assertions using context.check(expected, actual)
+  // mark test as complete using context.done()
 };
 ```
 
-##### `verify`
+##### `context`
 
-A simple assertion framework that provides the following api's:
+A simple utility and assertion framework wrapped within the context of your test and group that provides the following api's:
 
 1. `check(expected, actual)`: uses [lodash.isEqual](https://lodash.com/docs/#isEqual) to perform deep equality checks on primitives and objects and more
 2. `done()`: marks test as complete
-3. `snapshot(name, actual)`: allows for snapshot testing, discussed later in this guide
-
-##### `log(message)`
-
-log provides a simple wrapper over `console.log` with the test name prefixed to your message to make them easier to find in the logs
+3. `log(message)`: log provides a simple wrapper over `console.log` with the test name prefixed to your message to make them easier to find in the logs
+4. `snapshot(name, actual)`: allows for snapshot testing, discussed later in this guide
 
 #### `groupName`
 
@@ -95,7 +92,7 @@ Allows you to create a group of tests. More on this below. If not specified the 
 
 ## Asynchronous Testing
 
-All tests defined using `test` are considered to be asynchronous function. This is the reason you need to tell good-vibes that your test is complete by calling the `verify.done()` api.
+All tests defined using `test` are considered to be asynchronous function. This is the reason you need to tell good-vibes that your test is complete by calling the `context.done()` api.
 
 Here is an example of an asynchronous test
 
@@ -109,11 +106,11 @@ const sayGreeting = async (message) => {
   });
 };
 
-test("Async Test", async (verify) => {
+test("Async Test", async (context) => {
   // note the async declaration
   const actual = await sayGreeting("World!"); // waiting for result
-  verify.check("Hello, World!", actual);
-  verify.done(); // mark test as complete
+  context.check("Hello, World!", actual);
+  context.done(); // mark test as complete
 });
 
 run(); // runs all your tests defined using the `test` api
@@ -138,18 +135,21 @@ const MY_GROUP = "My Group";
 let numbers;
 let strings;
 
-before((done, log) => {
+before((context) => {
+  // context inside before and after blocks only have done() and log(message) api's
   numbers = [1, 2, 3, 4, 5];
+  context.log("Logging is supported inside before and after blocks as well");
   setTimeout(() => {
     strings = ["this", "value", "is", "set", "after", "2", "seconds"];
-    done(); // dont forget to call done
+    context.done(); // dont forget to call done
   }, 2000);
 }, MY_GROUP);
 
 test(
   "My Test",
-  (v) => {
-    v.check(5, numbers.length)
+  (ctx) => {
+    ctx
+      .check(5, numbers.length)
       .check("1,2,3,4,5", numbers.join(","))
       .check(7, strings.length)
       .check("this value is set after 2 seconds", strings.join(" "))
@@ -158,10 +158,10 @@ test(
   MY_GROUP
 );
 
-after((done, log) => {
+after((ctx) => {
   numbers = undefined;
   strings = undefined;
-  done();
+  ctx.done();
 }, MY_GROUP); // group name is important so dont forget it :)
 
 run();
@@ -180,15 +180,15 @@ before(beforeFunction, groupName); // groupName defaults to 'Default' group
 `beforeFunction` has the following signature
 
 ```javascript
-const beforeFunction = async (done, log) => {
+const beforeFunction = async (context) => {
   // perform your test setup here
-  // call done() once complete
+  // call context.done() once complete
 };
 ```
 
 ### `after`
 
-`after` function runs once before after tests and has the same signature as `before`
+`after` function runs once after all tests have finished and has the same signature as `before`
 
 ### Concise Groups
 
@@ -206,26 +206,27 @@ const { before, test, after } = group(MY_GROUP); // wrap good-vibes api's with M
 let numbers;
 let strings;
 
-before((done, log) => {
+before((ctx) => {
   numbers = [1, 2, 3, 4, 5];
   setTimeout(() => {
     strings = ["this", "value", "is", "set", "after", "2", "seconds"];
-    done();
+    ctx.done();
   }, 2000);
 });
 
-test("My Test", (v) => {
-  v.check(5, numbers.length)
+test("My Test", (ctx) => {
+  ctx
+    .check(5, numbers.length)
     .check("1,2,3,4,5", numbers.join(","))
     .check(7, strings.length)
     .check("this value is set after 2 seconds", strings.join(" "))
     .done();
 });
 
-after((done, log) => {
+after((ctx) => {
   numbers = undefined;
   strings = undefined;
-  done();
+  ctx.done();
 });
 
 run();
@@ -233,23 +234,11 @@ run();
 
 ## Snapshot Testing
 
-Sometimes the output of a function can be very large - making it cumbersome to test using the `verify.check` api. To help with this good-vibes supports snapshot testing.
+Sometimes the output of a function can be very large - making it cumbersome to test using the `context.check` api. To help with this good-vibes supports snapshot testing.
 
 Snapshot tests allow you test for changes in the expected output. They do this by maintaining a `baseline` file with the expected output. Then whenever you run your test the actual output is compared against this baseline file and if they don't match the differences are reported as shown below:
 
-### Creating a baseline (or updating existing baseline)
-
-### Snapshots directory structure
-
-### Running your test
-
-## Synchronous Testing
-
-## Timeout
-
-## Debugging
-
-## Code Coverage
+![Snapshot assertion failure](/docs/images/snapshot-testing.png "Snapshot assertion failure")
 
 ## Examples
 

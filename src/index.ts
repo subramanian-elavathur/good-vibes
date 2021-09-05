@@ -1,10 +1,11 @@
-import { Context, VerifiableContext, Logger } from "./Context";
+import Context from "./Context";
+import TestContext from "./TestContext";
 
 interface BeforeAfter {
   (context: Context): void;
 }
 interface AsyncTest {
-  (context: VerifiableContext): void;
+  (context: TestContext): void;
 }
 
 interface Test {
@@ -116,7 +117,7 @@ const runOneTest = async (
   try {
     const testResults = new Promise<boolean>((resolve) => {
       test.test(
-        new VerifiableContext(
+        new TestContext(
           test.name,
           test.group,
           resolve,
