@@ -240,6 +240,20 @@ Snapshot tests allow you test for changes in the expected output. They do this b
 
 ![Snapshot assertion failure](/docs/images/snapshot-testing.png "Snapshot assertion failure")
 
+### Creating a baseline (or updating existing baseline)
+
+### Snapshots directory structure
+
+### Running your test
+
+## Synchronous Testing
+
+## Timeout
+
+## Debugging
+
+## Code Coverage
+
 ## Examples
 
 - Simple tests can be found in [test/simple.test.js](./test/simple.test.js)
