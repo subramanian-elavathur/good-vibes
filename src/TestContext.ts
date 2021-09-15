@@ -23,7 +23,9 @@ export default class TestContext extends Context {
   ) {
     super(testName, resolve);
     this.#groupName = groupName;
-    this.snapshotsDirectory = snapshotsDirectory ?? `./test/__snapshots__`;
+    this.snapshotsDirectory = snapshotsDirectory
+      ? `${snapshotsDirectory}/${this.#groupName}`
+      : `./test/__snapshots__/${this.#groupName}`;
     this.#snapshotsDirectoryInitCompleted = false;
     this.#snapshotsDirectoryInitFailed = false;
   }
@@ -84,9 +86,7 @@ export default class TestContext extends Context {
   }
 
   #getSnapshotPath(assertionName: string): string {
-    return `${this.snapshotsDirectory}/${this.#groupName}/${
-      this.name
-    }_${assertionName}.json`;
+    return `${this.snapshotsDirectory}/${this.name}_${assertionName}.json`;
   }
 
   async snapshot<Type>(
