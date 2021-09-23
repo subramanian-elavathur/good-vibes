@@ -240,7 +240,56 @@ Snapshot tests allow you test for changes in the expected output. They do this b
 
 ![Snapshot assertion failure](/docs/images/snapshot-testing.png "Snapshot assertion failure")
 
+## Simple Example
+
+```javascript
+import { group } from "good-vibes";
+
+const { test } = group("Snapshots");
+
+let createLargeObject = (value: string) => ({
+  a: value,
+  b: 123,
+  c: true,
+  d: [1, 2, 3, 4, 5],
+  e: {
+    f: [
+      {
+        a: value,
+        b: 123,
+        c: true,
+        d: [1, 2, 3, 4, 5],
+      },
+    ],
+  },
+});
+
+test("Large Object", (ctx) => {
+  // snapshot verifications are asynchronous so you must await its execution
+  await ctx.snapshot("Check 1", createLargeObject("One"));
+  // A single test may have one or more snapshot assertions, each snapshot inside a test must have a unique name
+  await ctx.snapshot("Check 2", createLargeObject("Two"));
+  // dont forget to call done() at the end
+  ctx.done();
+});
+
+run();
+```
+
+In the above example `good-vibes` will check if the output of `createLargeObject` matches the snapshot with name `Check 1` and `Check 2` respectively.
+
+Notes:
+
+1. Snapshots internally use JSON.stringify to write the snapshot files, so please be careful while creating snapshots of objects with functions in them
+2. Order of keys in the object does not matter as the verification is performed on the parsed JSON object and not the json string itself
+
+## Snapshot API
+
 ### Creating a baseline (or updating existing baseline)
+
+The first time you run the snapshot test it will fail stating that the baseline file could not be found, similar to below image:
+
+![Snapshot missing failure](/docs/images/missing-baseline.png "Snapshot missing failure")
 
 ### Snapshots directory structure
 
@@ -253,6 +302,8 @@ Snapshot tests allow you test for changes in the expected output. They do this b
 ## Debugging
 
 ## Code Coverage
+
+## Mocking Network Calls
 
 ## Examples
 
