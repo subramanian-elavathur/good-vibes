@@ -15,7 +15,7 @@ $ npm install good-vibes --save-dev
 Lets say you wanted to test the following function defined in `code.js`
 
 ```javascript
-// defined in ./code.js
+// defined in ./src/code.js
 const codeToTest = (firstName, lastName, age) => {
     return {
         name: {
@@ -33,8 +33,8 @@ export codeToTest;
 Here is how you would write a test using good-vibes for this function
 
 ```javascript
-// defined in ./code.test.js
-import { codeToTest } from "./code";
+// defined in ./test/code.test.js
+import { codeToTest } from "./src/code";
 import { test, run } from "good-vibes";
 // alternatively `const { test, run } = require('good-vibes');
 
@@ -49,6 +49,24 @@ test("My first test", (context) => {
 });
 
 run(); // runs all your tests defined using the `test` api
+```
+
+To run this test add a script to your `package.json` file
+
+```json
+{
+  "name": "my-library",
+  "version": "0.0.1",
+  "scripts": {
+    "test": "node test/code.test.js"
+  }
+}
+```
+
+And then on command line type
+
+```bash
+npm test
 ```
 
 ## Lets now explain what the above code does
@@ -84,7 +102,7 @@ A simple utility and assertion framework wrapped within the context of your test
 1. `check(expected, actual)`: uses [lodash.isEqual](https://lodash.com/docs/#isEqual) to perform deep equality checks on primitives and objects and more
 2. `done()`: marks test as complete
 3. `log(message)`: log provides a simple wrapper over `console.log` with the test name prefixed to your message to make them easier to find in the logs
-4. `snapshot(name, actual)`: allows for snapshot testing, discussed later in this guide
+4. `snapshot(name, actual, updateBaseline)`: allows for snapshot testing, discussed later in this guide
 
 #### `groupName`
 
@@ -115,6 +133,29 @@ test("Async Test", async (context) => {
 
 run(); // runs all your tests defined using the `test` api
 ```
+
+### `run`
+
+Calling the `run()` api starts the test execution. It accepts a configuration object as follows:
+
+```javascript
+run({
+  timeout: 300_000, // in milliseconds
+  snapshotsDirectory: "./test/__snapshots/", // string
+});
+```
+
+#### timeout
+
+This is the total amount of time all tests have to run before good-vibes end execution.
+
+Default is set to `5 minutes`. After 5 minutes good-vibes will end all test execution and return with error code `1`
+
+#### snapshotsDirectory
+
+Default value is set to `./test/__snapshots__/`. For more details see section on `Snapshot Testing` below.
+
+#### Running tests from multiple files
 
 ## Grouping tests
 
@@ -247,7 +288,7 @@ import { group } from "good-vibes";
 
 const { test } = group("Snapshots");
 
-let createLargeObject = (value: string) => ({
+let createLargeObject = (value) => ({
   a: value,
   b: 123,
   c: true,
@@ -283,15 +324,49 @@ Notes:
 1. Snapshots internally use JSON.stringify to write the snapshot files, so please be careful while creating snapshots of objects with functions in them
 2. Order of keys in the object does not matter as the verification is performed on the parsed JSON object and not the json string itself
 
-## Snapshot API
+### Snapshot API
 
-### Creating a baseline (or updating existing baseline)
+The `snapshot` function allows you to define a test. It has the following signature:
 
-The first time you run the snapshot test it will fail stating that the baseline file could not be found, similar to below image:
+```typescript
+async snapshot<Type>(snapshotName: string, actualValue: Type, rebase?: boolean): Promise<TestContext>
+```
+
+### Creating or updating a baseline
+
+The first time you run the snapshot test it will fail stating that the baseline file could not be found, similar to the image below:
 
 ![Snapshot missing failure](/docs/images/missing-baseline.png "Snapshot missing failure")
 
-### Snapshots directory structure
+To create a new baseline or update an existing one, set the third argument of the `snapshot` api to `true`
+
+**Important Note:** When you rebase a snapshot file, good-vibes will automatically **fail** that test. This is to safeguard against accidental updates to snapshot files and prevent this flag from being committed into source control
+
+### Snapshots directory and file structure
+
+#### Directory Structure
+
+By default good-vibes will create a directory to store all snapshots at this location: `./test/__snapshots__`. Inside this folder a new folder is created for each `group` of tests.
+
+You may override this property by setting the `snapshotsDirectory` configuration property while calling the `run` function. See section on `run` api above for more details.
+
+#### Snapshot file naming convention
+
+All snapshot files are named using the following convention: `<test-name>_<snapshot-name>.json`
+
+#### Overall Structure
+
+Putting the above conventions together, the following template specifies the exact location (using defaults): `./test/__snapshots__/<group-name>/<test-name>_<snapshot-name>.json`
+
+In case of our example tests above, following would be the snapshot paths:
+
+`./test/__snapshots__/Snapshots/Large Object_Check 1.json`
+
+`./test/__snapshots__/Snapshots/Large Object_Check 2.json`
+
+#### Example
+
+![Snapshot directory structure](/docs/images/snapshot-directory-structure.png "Snapshot directory structure")
 
 ### Running your test
 
