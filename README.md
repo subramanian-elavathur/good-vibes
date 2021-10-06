@@ -238,7 +238,7 @@ It can sometimes be verbose to have to specify the group name in each of `before
 Lets rewrite the above example now using the `group` api.
 
 ```javascript
-import { group } from "good-vibes";
+import { group, run } from "good-vibes";
 
 const MY_GROUP = "My Group";
 
@@ -368,11 +368,88 @@ In case of our example tests above, following would be the snapshot paths:
 
 ![Snapshot directory structure](/docs/images/snapshot-directory-structure.png "Snapshot directory structure")
 
-### Running your test
-
 ## Synchronous Testing
 
-## Timeout
+By default all tests inside a group are considered `async` and run concurrently. However you may change this behavior at the group level by use of the `sync` api. The order of the tests in synchronous testing mode is the order of declaration in the test file from top to bottom.
+
+### `sync` api signature
+
+```typescript
+sync(groupName?: string) // groupName defaults to "Default"
+```
+
+### Using `sync` api
+
+```javascript
+import { before, test, sync, run } from "good-vibes";
+
+const MY_GROUP = "My Group";
+
+let numbers;
+let strings;
+
+before((context) => {
+  numbers = [1, 2, 3, 4, 5];
+  strings = ["sample", "values"];
+}, MY_GROUP);
+
+test(
+  "My Test",
+  (ctx) => {
+    ctx.check(5, numbers.length).check("1,2,3,4,5", numbers.join(",")).done();
+  },
+  MY_GROUP
+);
+
+// You can invoke the sync api anywhere in any of your test files
+// Because tests only run when the `run()` api is called
+// good-vibes will ensure all tests in this group run synchonously
+
+sync(MY_GROUP);
+
+test(
+  "My Test",
+  (ctx) => {
+    ctx
+      .check(7, strings.length)
+      .check("sample values", strings.join(" "))
+      .done();
+  },
+  MY_GROUP
+);
+
+run();
+```
+
+### Using the concise groups `sync` api
+
+```javascript
+import { group, run } from "good-vibes"; // import sync from good-vibes
+
+const MY_GROUP = "My Group";
+
+const { before, test, sync } = group(MY_GROUP);
+
+sync();
+
+let numbers;
+let strings;
+
+before((context) => {
+  numbers = [1, 2, 3, 4, 5];
+  strings = ["sample", "values"];
+});
+
+test("My Test", (ctx) => {
+  ctx.check(5, numbers.length).check("1,2,3,4,5", numbers.join(",")).done();
+});
+
+test("My Test", (ctx) => {
+  ctx.check(7, strings.length).check("sample values", strings.join(" ")).done();
+});
+
+run();
+```
 
 ## Debugging
 
@@ -384,7 +461,7 @@ In case of our example tests above, following would be the snapshot paths:
 
 - Simple tests can be found in [test/simple.test.js](./test/simple.test.js)
 - Test grouping with use of `before` and `after` can be found in [test/groups.test.js](./test/groups.test.js)
-- Exmaple of `snapshot` tests can be found in [test/snapshot.test.js](./test/snapshot.test.js)
+- Example of `snapshot` tests can be found in [test/snapshot.test.js](./test/snapshot.test.js)
 - A concise example of groups using the `group` api can be found in [test/concise-groups.test.js](./test/concise-groups.test.js)
 - Examples of `sync` tests can be found in [test/synchronous.test.js](./test/synchronous.test.js)
 - Examples of failing tests can be found in [test/failing.test.js](./test/failing.test.js)
