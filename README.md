@@ -281,7 +281,7 @@ Snapshot tests allow you test for changes in the expected output. They do this b
 
 ![Snapshot assertion failure](/docs/images/snapshot-testing.png "Snapshot assertion failure")
 
-## Simple Example
+### Simple Example
 
 ```javascript
 import { group } from "good-vibes";
