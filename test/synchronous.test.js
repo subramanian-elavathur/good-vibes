@@ -18,8 +18,12 @@ before((ctx) => {
 
 sync(); // before and after always run synchronously
 
-test("good vibes", (ctx) => {
+test("good vibes passthrough", (ctx) => {
   strings.push("vibes");
+  ctx.done();
+});
+
+test("good vibes", (ctx) => {
   ctx.check("good vibes", strings.join(" ")).done();
 });
 

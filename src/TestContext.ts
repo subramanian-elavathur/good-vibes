@@ -4,6 +4,7 @@ import * as Diff from "diff";
 import Context, { Resolve } from "./Context";
 
 enum TestStatus {
+  PASSTHROUGH,
   FAILED,
   PASSED,
 }
@@ -28,6 +29,7 @@ export default class TestContext extends Context {
       : `./test/__snapshots__/${this.#groupName}`;
     this.#snapshotsDirectoryInitCompleted = false;
     this.#snapshotsDirectoryInitFailed = false;
+    this.#testStatus = TestStatus.PASSTHROUGH;
   }
 
   check<Type>(expectedValue: Type, actualValue: Type): TestContext {
@@ -157,6 +159,9 @@ export default class TestContext extends Context {
   }
 
   done() {
-    this.resolve(this.#testStatus === TestStatus.PASSED);
+    this.resolve(
+      this.#testStatus === TestStatus.PASSTHROUGH ||
+        this.#testStatus === TestStatus.PASSED
+    );
   }
 }

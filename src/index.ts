@@ -196,7 +196,7 @@ const runTestsInAGroup = async (
     await runBeforeOrAfter(after, "After");
     const endTime = new Date().valueOf();
     console.log(
-      `Finished: After script in ${(endTime - startTime) / 1000} seconds`
+      `Finished: After script in ${(endTime - startTime) / 1000} seconds\n`
     );
   }
   console.log(`\nFinished running ${tests.length} tests from ${group} group\n`);
