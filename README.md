@@ -470,8 +470,10 @@ good-vibes support this using a special purpose group name called `Debug`. `Debu
 ```javascript
 const { before, test, DEBUG, run } = require("../lib/index");
 
-// When running in debug mode only tests tagged with DEBUG group are run, all other tests are skipped
-// Good vibes also exits with a return code of 1 to prevent tests from being, checked into your codebase accidentally
+// When running in debug mode only tests tagged with DEBUG group are run,
+// all other tests are skipped
+// Good vibes also exits with a return code of 1 to prevent tests from being
+// checked into your codebase accidentally
 
 before((ctx) => {
   ctx.log("You can run before and after blocks even in debug mode");
@@ -507,7 +509,10 @@ let strings;
 before((context) => {
   numbers = [1, 2, 3, 4, 5];
   strings = ["sample", "values"];
-}, DEBUG); // always ensure that you run your before blocks in DEBUG mode too if you before some setup for the test being debugged
+}, DEBUG);
+
+// always ensure that you run your before blocks in DEBUG mode too
+// if you before some setup for the test being debugged
 
 test("My Test", (ctx) => {
   ctx.check(5, numbers.length).check("1,2,3,4,5", numbers.join(",")).done();
@@ -519,6 +524,10 @@ test("My Test", (ctx) => {
 
 run();
 ```
+
+### Debugging nodejs programs in your IDE
+
+[Instructions for VS Code](https://code.visualstudio.com/docs/nodejs/nodejs-debugging)
 
 ## Code Coverage
 
