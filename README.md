@@ -157,6 +157,8 @@ Default value is set to `./test/__snapshots__/`. For more details see section on
 
 #### Running tests from multiple files
 
+TODO
+
 ## Grouping tests
 
 The `test` api supports `groupName` as the third argument which allows you to groups similar tests together. Groups have the following features:
@@ -453,9 +455,76 @@ run();
 
 ## Debugging
 
+When you have too many tests in your application, its often useful to be able to run just one or a few failing tests alone to debug the cause of their failure.
+
+good-vibes support this using a special purpose group name called `Debug`. `Debug` group name can be used in `before`, `test` and `after` api's and even inside concise groups.
+
+**Recommendation**: We recommend that you `import { DEBUG } from 'good-vibes'` instead of redefining the variable yourself. This will isolate your tests from changes to this group name in the future.
+
+**Important Note**: When running in debug mode good-vibes exits with failure return code 1 - this is to prevent the debug flag from being accidentally committed to source control. The following disclaimer will also be printed in the logs:
+
+![Debug mode disclaimer](/docs/images/debug-mode.png "Debug mode disclainer")
+
+### Using the `Debug` group
+
+```javascript
+const { before, test, DEBUG, run } = require("../lib/index");
+
+// When running in debug mode only tests tagged with DEBUG group are run, all other tests are skipped
+// Good vibes also exits with a return code of 1 to prevent tests from being, checked into your codebase accidentally
+
+before((ctx) => {
+  ctx.log("You can run before and after blocks even in debug mode");
+  ctx.done();
+}, DEBUG);
+
+test(
+  "Johnny Cash",
+  (ctx) => {
+    setTimeout(() => {
+      ctx.log("Hurt");
+      ctx.check(1, 1).done();
+    }, 2000);
+  },
+  DEBUG
+);
+
+run();
+```
+
+### Concise groups with `Debug`
+
+```javascript
+import { group, run. DEBUG } from "good-vibes";
+
+const MY_GROUP = "My Group";
+
+const { before, test, sync } = group(MY_GROUP);
+
+let numbers;
+let strings;
+
+before((context) => {
+  numbers = [1, 2, 3, 4, 5];
+  strings = ["sample", "values"];
+}, DEBUG); // always ensure that you run your before blocks in DEBUG mode too if you before some setup for the test being debugged
+
+test("My Test", (ctx) => {
+  ctx.check(5, numbers.length).check("1,2,3,4,5", numbers.join(",")).done();
+}, DEBUG); // running only one test in DEBUG mode
+
+test("My Test", (ctx) => {
+  ctx.check(7, strings.length).check("sample values", strings.join(" ")).done();
+});
+
+run();
+```
+
 ## Code Coverage
 
-## Mocking Network Calls
+## Recipes
+
+### Mocking Network Calls
 
 ## Examples
 
