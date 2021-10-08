@@ -172,8 +172,12 @@ const runTestsInAGroup = async (
   );
   if (before) {
     console.log(`Running: Before script`);
+    const startTime = new Date().valueOf();
     await runBeforeOrAfter(before, "Before");
-    console.log(`Finished: Before script\n`);
+    const endTime = new Date().valueOf();
+    console.log(
+      `Finished: Before script in ${(endTime - startTime) / 1000} seconds\n`
+    );
   }
 
   let results: TestResult[] = [];
@@ -188,8 +192,12 @@ const runTestsInAGroup = async (
 
   if (after) {
     console.log(`\nRunning: After script`);
+    const startTime = new Date().valueOf();
     await runBeforeOrAfter(after, "After");
-    console.log(`Finished: After script`);
+    const endTime = new Date().valueOf();
+    console.log(
+      `Finished: After script in ${(endTime - startTime) / 1000} seconds`
+    );
   }
   console.log(`\nFinished running ${tests.length} tests from ${group} group\n`);
   return results.filter((each) => !each.status);
