@@ -1,5 +1,7 @@
 # good-vibes
 
+[![codecov](https://codecov.io/gh/subramanian-elavathur/good-vibes/branch/main/graph/badge.svg?token=1D68W4DNN1)](https://codecov.io/gh/subramanian-elavathur/good-vibes)
+
 Good Vibes is a simple Node.js testing library designed to make writing and executing tests easy and fun.
 
 It was inspired by, and written primarily while listening to, [Alicia Keys' Tiny Desk Concert](https://www.youtube.com/watch?v=uwUt1fVLb3E)
