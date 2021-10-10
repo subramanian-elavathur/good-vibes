@@ -558,13 +558,13 @@ The above configuration generates a text-summary and a detailed lcov report with
 
 ### Text Summary Report
 
-![Coverage Text Summary](/docs/images/text-summary-coverage.png "Coverage Text Summary")
+![Coverage Text Summary](/docs/images/text-summary.png "Coverage Text Summary")
 
 ### lcov Coverage Report
 
 This can be found inside the `/coverage` folder, a sample report is shown below:
 
-![Coverage lcov HTML](/docs/images/coverage-lcov-html.png "Coverage lcov HTML")
+![Coverage lcov HTML](/docs/images/lcov-html.png "Coverage lcov HTML")
 
 ## Examples
 
