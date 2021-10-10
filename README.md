@@ -7,7 +7,7 @@ It was inspired by, and written primarily while listening to, [Alicia Keys' Tiny
 ## Installation
 
 ```bash
-$ npm install good-vibes --save-dev
+npm install good-vibes --save-dev
 ```
 
 ## Getting started
@@ -531,9 +531,40 @@ run();
 
 ## Code Coverage
 
-## Recipes
+Code coverage reports can be generated using the `nyc` package. For up-to-date instruction please check out [Installation & Usage section of nyc](https://github.com/istanbuljs/nyc#installation--usage)
 
-### Mocking Network Calls
+### Using `nyc` with `good-vibes`
+
+First install `nyc` as a dev dependency
+
+```bash
+npm install nyc --save-dev
+```
+
+Next update your `package.json` scripts section to add a coverage script to run `nyc`
+
+```json
+{
+  "name": "my-library",
+  "version": "0.0.1",
+  "scripts": {
+    "test": "node test/code.test.js",
+    "coverage": "nyc --reporter=lcov --reporter=text-summary npm run test"
+  }
+}
+```
+
+The above configuration generates a text-summary and a detailed lcov report with html visualization
+
+### Text Summary Report
+
+![Coverage Text Summary](/docs/images/text-summary-coverage.png "Coverage Text Summary")
+
+### lcov Coverage Report
+
+This can be found inside the `/coverage` folder, a sample report is shown below:
+
+![Coverage lcov HTML](/docs/images/coverage-lcov-html.png "Coverage lcov HTML")
 
 ## Examples
 
