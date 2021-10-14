@@ -1,4 +1,4 @@
-import log, { LogLevel } from "./log";
+import log from "./log";
 interface Logger {
   (message: string): void;
 }

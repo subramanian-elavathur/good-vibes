@@ -1,0 +1,8 @@
+{
+  "random": 5,
+  "random float": 69.768,
+  "bool": false,
+  "date": "1990-07-18",
+  "regEx": "hellooo world",
+  "enum": "json"
+}

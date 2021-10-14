@@ -33,6 +33,17 @@ export default class TestContext extends Context {
     this.#testStatus = TestStatus.PASSTHROUGH;
   }
 
+  #setTestStatus(status: TestStatus.PASSED | TestStatus.FAILED) {
+    if (
+      this.#testStatus === TestStatus.FAILED &&
+      status === TestStatus.PASSED
+    ) {
+      this.#testStatus = TestStatus.FAILED;
+    } else {
+      this.#testStatus = status;
+    }
+  }
+
   check<Type>(expectedValue: Type, actualValue: Type): TestContext {
     const result = isEqual(expectedValue, actualValue);
     if (!result) {
@@ -41,9 +52,9 @@ export default class TestContext extends Context {
           actualValue
         )}`
       );
-      this.#testStatus = TestStatus.FAILED;
+      this.#setTestStatus(TestStatus.FAILED);
     } else {
-      this.#testStatus = TestStatus.PASSED;
+      this.#setTestStatus(TestStatus.PASSED);
     }
     return this;
   }
@@ -115,7 +126,7 @@ export default class TestContext extends Context {
         );
       }
       this.logger(`Failing test in case rebase flag was set by mistake`);
-      this.#testStatus = TestStatus.FAILED;
+      this.#setTestStatus(TestStatus.FAILED);
     } else {
       const snapshotPath = this.#getSnapshotPath(assertionName);
       let data;
@@ -125,7 +136,7 @@ export default class TestContext extends Context {
         });
       } catch (e) {
         this.logger(`Could not find snapshot file at path ${snapshotPath}`);
-        this.#testStatus = TestStatus.FAILED;
+        this.#setTestStatus(TestStatus.FAILED);
         return Promise.resolve(this);
       }
       const existingValue = JSON.parse(data);
@@ -147,15 +158,15 @@ export default class TestContext extends Context {
                 : LogLevel.INFO
             );
           });
-          this.#testStatus = TestStatus.FAILED;
+          this.#setTestStatus(TestStatus.FAILED);
         } else {
-          this.#testStatus = TestStatus.PASSED;
+          this.#setTestStatus(TestStatus.PASSED);
         }
       } else {
         this.logger(
           "Test failed as baseline was empty, run with rebase flag set to true to generate file"
         );
-        this.#testStatus = TestStatus.FAILED;
+        this.#setTestStatus(TestStatus.FAILED);
       }
     }
     return Promise.resolve(this);
