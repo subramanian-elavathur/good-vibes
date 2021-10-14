@@ -35,6 +35,7 @@ interface TestResult {
 interface Options {
   timeout?: number;
   snapshotsDirectory?: string;
+  returnCodeOnFailure?: number;
 }
 
 const DEFAULT_TEST_GROUP = "Default";
@@ -47,15 +48,10 @@ const testStore: GroupedTests = {
   },
 };
 
-let promptPrinted = false;
-
 const banner = () => {
-  if (!promptPrinted) {
-    promptPrinted = true;
-    console.log(
-      "\nWelcome to Good Vibes\n\nA Node.js testing library dedicated to Alicia Keys' Tiny Desk Performance\n\nWatch it here: https://www.youtube.com/watch?v=uwUt1fVLb3E\n"
-    );
-  }
+  console.log(
+    "\nWelcome to Good Vibes\n\nA Node.js testing library dedicated to Alicia Keys' Tiny Desk Performance\n\nWatch it here: https://www.youtube.com/watch?v=uwUt1fVLb3E\n"
+  );
 };
 
 export const group = (groupName: string) => {
@@ -247,7 +243,7 @@ const run = async (options?: Options) => {
           }`
         )
       );
-      process.exit(1);
+      process.exit(options?.returnCodeOnFailure ?? 1);
     }
     console.log(`All ${totalTests} tests passed, good vibes :)`);
     process.exit(0);

@@ -3,11 +3,11 @@ require("./groups.test");
 require("./concise-groups.test");
 require("./snapshot.test");
 require("./synchronous.test");
+require("./failing.test"); // uncomment to see failing test behavior
 // require("./debug.test"); // uncomment to see debug test behavior
-// require("./failing.test"); // uncomment to see failing test behavior
 const run = require("../lib/index").default;
 
-run();
+run({ returnCodeOnFailure: 0 });
 
 // Possible options to run command include
 // {

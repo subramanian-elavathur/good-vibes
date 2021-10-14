@@ -1,6 +1,6 @@
 {
   "name": "good-vibes",
-  "version": "0.17.1",
+  "version": "0.18.0",
   "description": "Good Vibes is a Node.js testing library inspired by Alicia Keys Tiny Desk Concert",
   "main": "lib/index.js",
   "types": "./typings/index.d.ts",
