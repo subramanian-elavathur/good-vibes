@@ -2,6 +2,7 @@ import * as isEqual from "lodash.isequal";
 import * as fs from "fs/promises";
 import * as Diff from "diff";
 import Context, { Resolve } from "./Context";
+import log, { LogLevel } from "./log";
 
 enum TestStatus {
   PASSTHROUGH,
@@ -81,7 +82,7 @@ export default class TestContext extends Context {
         );
         this.#snapshotsDirectoryInitFailed = true;
       } else {
-        console.log(`Directory already exists, lets go!`);
+        log(`Directory already exists, lets go!`);
         this.#snapshotsDirectoryInitCompleted = true;
       }
     }
@@ -137,12 +138,14 @@ export default class TestContext extends Context {
         if (failed) {
           this.logger("Test failed, please see diff below for details\n");
           diff.forEach((part) => {
-            const color = part.added
-              ? "\x1b[32m" // green
-              : part.removed
-              ? "\x1b[31m" // red
-              : "\x1b[0m";
-            console.log(`${color}%s\x1b[0m`, part.value);
+            log(
+              part.value,
+              part.added
+                ? LogLevel.SUCCESS
+                : part.removed
+                ? LogLevel.ERROR
+                : LogLevel.INFO
+            );
           });
           this.#testStatus = TestStatus.FAILED;
         } else {

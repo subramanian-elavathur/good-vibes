@@ -1,5 +1,6 @@
 import Context from "./Context";
 import TestContext from "./TestContext";
+import log, { LogLevel } from "./log";
 
 interface BeforeAfter {
   (context: Context): void;
@@ -49,7 +50,7 @@ const testStore: GroupedTests = {
 };
 
 const banner = () => {
-  console.log(
+  log(
     "\nWelcome to Good Vibes\n\nA Node.js testing library dedicated to Alicia Keys' Tiny Desk Performance\n\nWatch it here: https://www.youtube.com/watch?v=uwUt1fVLb3E\n"
   );
 };
@@ -107,7 +108,7 @@ const runOneTest = async (
   test: Test,
   options?: Options
 ): Promise<TestResult> => {
-  console.log(`Running: ${test.name}`);
+  log(`Running: ${test.name}`);
   const startTime = new Date().valueOf();
   let result: TestResult;
   try {
@@ -135,10 +136,11 @@ const runOneTest = async (
     };
   }
   const endTime = new Date().valueOf();
-  console.log(
+  log(
     `Finished: ${test.name} [${result.status ? "PASSED" : "FAILED"} in ${
       (endTime - startTime) / 1000
-    } seconds]`
+    } seconds]`,
+    result.status ? LogLevel.SUCCESS : LogLevel.ERROR
   );
   return Promise.resolve(result);
 };
@@ -161,19 +163,17 @@ const runTestsInAGroup = async (
   options?: Options
 ): Promise<TestResult[]> => {
   const { before, tests, after, sync } = testStore[group];
-  console.log(
+  log(
     `Running ${tests.length} tests from ${group} group${
       sync ? " in synchronous mode" : ""
     }\n`
   );
   if (before) {
-    console.log(`Running: Before script`);
+    log(`Running: Before script`);
     const startTime = new Date().valueOf();
     await runBeforeOrAfter(before, "Before");
     const endTime = new Date().valueOf();
-    console.log(
-      `Finished: Before script in ${(endTime - startTime) / 1000} seconds\n`
-    );
+    log(`Finished: Before script in ${(endTime - startTime) / 1000} seconds\n`);
   }
 
   let results: TestResult[] = [];
@@ -187,21 +187,19 @@ const runTestsInAGroup = async (
   }
 
   if (after) {
-    console.log(`\nRunning: After script`);
+    log(`\nRunning: After script`);
     const startTime = new Date().valueOf();
     await runBeforeOrAfter(after, "After");
     const endTime = new Date().valueOf();
-    console.log(
-      `Finished: After script in ${(endTime - startTime) / 1000} seconds\n`
-    );
+    log(`Finished: After script in ${(endTime - startTime) / 1000} seconds\n`);
   }
-  console.log(`\nFinished running ${tests.length} tests from ${group} group\n`);
+  log(`\nFinished running ${tests.length} tests from ${group} group\n`);
   return results.filter((each) => !each.status);
 };
 
 const terminateOnTimeout = (timeout?: number) => {
   setTimeout(() => {
-    console.log(
+    log(
       `\n[TIMEOUT] Global test timeout exceeded ${
         timeout / 1000
       } seconds. Exiting.`
@@ -220,7 +218,7 @@ const run = async (options?: Options) => {
   let failedTests: TestResult[] = [];
   if (testStore[DEBUG]?.tests?.length) {
     await runTestsInAGroup(DEBUG, options);
-    console.log(
+    log(
       `[Important] Good vibes is running in Debug mode [Important]\n\nDebug mode allows you to run one or more tests to help you debug them easily.\nDebug mode always exits with return code 1 to prevent this change from being accidentally checked in to your codebase.\nSee logs above to find which tests were tagged to 'Debug' group and remove that group tag to resume normal mode.`
     );
     process.exit(1);
@@ -233,11 +231,11 @@ const run = async (options?: Options) => {
       failedTests = [...failedTests, ...failedTestsInGroup];
     }
     if (failedTests?.length) {
-      console.log(
+      log(
         `Hey ${failedTests.length}/${totalTests} tests failed, but its going to be ok. Start by going through the list below and adding some logs to figure out whats going wrong:`
       );
       failedTests.forEach((each, index) =>
-        console.log(
+        log(
           `${index}. [${each.group}] ${each.name} ${
             each.message ? `(${each.message})` : ""
           }`
@@ -245,7 +243,7 @@ const run = async (options?: Options) => {
       );
       process.exit(options?.returnCodeOnFailure ?? 1);
     }
-    console.log(`All ${totalTests} tests passed, good vibes :)`);
+    log(`All ${totalTests} tests passed, good vibes :)`);
     process.exit(0);
   }
 };
