@@ -110,6 +110,31 @@ A simple utility and assertion framework wrapped within the context of your test
 
 Allows you to create a group of tests. More on this below. If not specified the test is assiged to the `Default` group.
 
+### `run`
+
+Calling the `run()` api starts the test execution. It accepts a configuration object as follows:
+
+```javascript
+run({
+  timeout: 300_000, // in milliseconds
+  snapshotsDirectory: "./test/__snapshots/", // string
+});
+```
+
+#### timeout
+
+This is the total amount of time all tests have to run before good-vibes end execution.
+
+Default is set to `5 minutes`. After 5 minutes good-vibes will end all test execution and return with error code `1`
+
+#### snapshotsDirectory
+
+Default value is set to `./test/__snapshots__/`. For more details see section on `Snapshot Testing` below.
+
+#### Running tests from multiple files
+
+TODO
+
 ## Asynchronous Testing
 
 All tests defined using `test` are considered to be asynchronous function. This is the reason you need to tell good-vibes that your test is complete by calling the `context.done()` api.
@@ -135,31 +160,6 @@ test("Async Test", async (context) => {
 
 run(); // runs all your tests defined using the `test` api
 ```
-
-### `run`
-
-Calling the `run()` api starts the test execution. It accepts a configuration object as follows:
-
-```javascript
-run({
-  timeout: 300_000, // in milliseconds
-  snapshotsDirectory: "./test/__snapshots/", // string
-});
-```
-
-#### timeout
-
-This is the total amount of time all tests have to run before good-vibes end execution.
-
-Default is set to `5 minutes`. After 5 minutes good-vibes will end all test execution and return with error code `1`
-
-#### snapshotsDirectory
-
-Default value is set to `./test/__snapshots__/`. For more details see section on `Snapshot Testing` below.
-
-#### Running tests from multiple files
-
-TODO
 
 ## Grouping tests
 
