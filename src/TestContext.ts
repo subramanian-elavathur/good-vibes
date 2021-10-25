@@ -16,6 +16,7 @@ export default class TestContext extends Context {
   readonly snapshotsDirectory: string;
   #snapshotsDirectoryInitCompleted: boolean;
   #snapshotsDirectoryInitFailed: boolean;
+  #assertionCount: number;
 
   constructor(
     testName: string,
@@ -31,6 +32,7 @@ export default class TestContext extends Context {
     this.#snapshotsDirectoryInitCompleted = false;
     this.#snapshotsDirectoryInitFailed = false;
     this.#testStatus = TestStatus.PASSTHROUGH;
+    this.#assertionCount = 0;
   }
 
   #setTestStatus(status: TestStatus.PASSED | TestStatus.FAILED) {
@@ -45,15 +47,21 @@ export default class TestContext extends Context {
   }
 
   check<Type>(expectedValue: Type, actualValue: Type): TestContext {
+    this.#assertionCount++;
     const result = isEqual(expectedValue, actualValue);
     if (!result) {
       this.logger(
-        `Expected ${JSON.stringify(expectedValue)} to match ${JSON.stringify(
-          actualValue
-        )}`
+        `Assertion ${this.#assertionCount}: Expected ${JSON.stringify(
+          expectedValue
+        )} to match ${JSON.stringify(actualValue)}`,
+        LogLevel.ERROR
       );
       this.#setTestStatus(TestStatus.FAILED);
     } else {
+      this.logger(
+        `Assertion ${this.#assertionCount}: PASSED`,
+        LogLevel.SUCCESS
+      );
       this.#setTestStatus(TestStatus.PASSED);
     }
     return this;
@@ -147,7 +155,10 @@ export default class TestContext extends Context {
           return failed;
         }, false);
         if (failed) {
-          this.logger("Test failed, please see diff below for details\n");
+          this.logger(
+            `Snapshot ${assertionName}: FAILED, please see diff below for details\n`,
+            LogLevel.ERROR
+          );
           diff.forEach((part) => {
             log(
               part.value,
@@ -160,6 +171,7 @@ export default class TestContext extends Context {
           });
           this.#setTestStatus(TestStatus.FAILED);
         } else {
+          this.logger(`Snapshot ${assertionName}: PASSED`, LogLevel.SUCCESS);
           this.#setTestStatus(TestStatus.PASSED);
         }
       } else {

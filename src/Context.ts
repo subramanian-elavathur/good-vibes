@@ -1,12 +1,12 @@
-import log from "./log";
+import log, { LogLevel } from "./log";
 interface Logger {
-  (message: string): void;
+  (message: string, level?: LogLevel): void;
 }
 
 const createLogger =
   (name: string): Logger =>
-  (message) =>
-    log(`Log: ${name}: ${message}`);
+  (message: string, level?: LogLevel) =>
+    log(`Log: ${name}: ${message}`, level);
 
 export interface Resolve {
   (result: boolean): void;
