@@ -165,9 +165,9 @@ export default class TestContext extends Context {
             log(
               part.value,
               part.added
-                ? LogLevel.SUCCESS
-                : part.removed
                 ? LogLevel.ERROR
+                : part.removed
+                ? LogLevel.SUCCESS
                 : LogLevel.INFO
             );
           });
