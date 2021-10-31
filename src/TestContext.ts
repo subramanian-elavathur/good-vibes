@@ -10,13 +10,17 @@ enum TestStatus {
   PASSED,
 }
 
+// assert 4 failed
+// 4/5 assertions passed
+
 export default class TestContext extends Context {
   #groupName: string;
   #testStatus: TestStatus;
   readonly snapshotsDirectory: string;
   #snapshotsDirectoryInitCompleted: boolean;
   #snapshotsDirectoryInitFailed: boolean;
-  #assertionCount: number;
+  #passedAssertions: number;
+  #failedAssertions: number;
 
   constructor(
     testName: string,
@@ -32,7 +36,8 @@ export default class TestContext extends Context {
     this.#snapshotsDirectoryInitCompleted = false;
     this.#snapshotsDirectoryInitFailed = false;
     this.#testStatus = TestStatus.PASSTHROUGH;
-    this.#assertionCount = 0;
+    this.#passedAssertions = 0;
+    this.#failedAssertions = 0;
   }
 
   #setTestStatus(status: TestStatus.PASSED | TestStatus.FAILED) {
@@ -47,21 +52,18 @@ export default class TestContext extends Context {
   }
 
   check<Type>(expectedValue: Type, actualValue: Type): TestContext {
-    this.#assertionCount++;
     const result = isEqual(expectedValue, actualValue);
     if (!result) {
+      this.#failedAssertions++;
       this.logger(
-        `Assertion ${this.#assertionCount}: Expected ${JSON.stringify(
+        `Assertion ${this.#failedAssertions}: Expected ${JSON.stringify(
           expectedValue
         )} to match ${JSON.stringify(actualValue)}`,
         LogLevel.ERROR
       );
       this.#setTestStatus(TestStatus.FAILED);
     } else {
-      this.logger(
-        `Assertion ${this.#assertionCount}: PASSED`,
-        LogLevel.SUCCESS
-      );
+      this.#passedAssertions++;
       this.#setTestStatus(TestStatus.PASSED);
     }
     return this;
@@ -185,6 +187,14 @@ export default class TestContext extends Context {
   }
 
   done() {
+    if (this.#passedAssertions) {
+      this.logger(
+        `${this.#passedAssertions}/${
+          this.#failedAssertions + this.#passedAssertions
+        } Assertions PASSED`,
+        LogLevel.SUCCESS
+      );
+    }
     this.resolve(
       this.#testStatus === TestStatus.PASSTHROUGH ||
         this.#testStatus === TestStatus.PASSED
