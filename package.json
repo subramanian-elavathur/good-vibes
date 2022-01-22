@@ -45,7 +45,7 @@
     "url": "https://github.com/subramanian-elavathur/good-vibes/issues"
   },
   "lint-staged": {
-    "**/*": "npm run lint"
+    "**/*": "npm run prettier"
   },
   "homepage": "https://github.com/subramanian-elavathur/good-vibes#readme",
   "devDependencies": {
