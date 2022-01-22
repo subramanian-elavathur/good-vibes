@@ -1,4 +1,4 @@
-const { test } = require("../lib/index");
+import { test } from "../src";
 
 test("Pink Moon", async (ctx) => {
   const data = {

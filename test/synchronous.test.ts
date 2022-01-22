@@ -1,4 +1,4 @@
-const { group } = require("../lib/index");
+import { group } from "../src";
 
 // call sync("groupname") to make all tests in the group
 // run synchronously. If you dont specify a group name the

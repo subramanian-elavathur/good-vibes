@@ -1,4 +1,4 @@
-const { before, test, after } = require("../lib/index");
+import { before, test, after } from "../src";
 
 // Groups are just strings that group together a set of related tests
 // Using groups allows you to specify before and after methods as described below

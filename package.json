@@ -1,25 +1,26 @@
 {
   "name": "good-vibes",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "description": "Good Vibes is a Node.js testing library inspired by Alicia Keys Tiny Desk Concert",
-  "main": "lib/index.js",
-  "types": "./typings/index.d.ts",
+  "main": "./lib/src/index.js",
+  "types": "./typings/src/index.d.ts",
   "type": "commonjs",
   "files": [
-    "src/**/*.ts",
-    "lib/**/*.js",
-    "lib/**/*.js.map",
-    "typings/**/*.d.ts",
-    "typings/**/*.d.ts.map"
+    "src/*",
+    "lib/src/*",
+    "typings/src/*"
   ],
   "engines": {
-    "node": ">=14"
+    "node": ">=16"
   },
   "scripts": {
-    "build": "npx tsc",
-    "test": "npm run build && node test/tests.js",
+    "prettier": "prettier --ignore-path .gitignore --write .",
+    "lint": "eslint --ignore-path .gitignore .",
+    "build": "npm run lint && tsc",
+    "test": "npm run build && node lib/test/all.test.js",
     "coverage": "nyc --reporter=lcov --reporter=text-summary npm run test",
-    "coverage-codecov": "npm run coverage && codecov"
+    "coverage-codecov": "npm run coverage && codecov",
+    "prepare": "husky install"
   },
   "repository": {
     "type": "git",
@@ -43,11 +44,21 @@
   "bugs": {
     "url": "https://github.com/subramanian-elavathur/good-vibes/issues"
   },
+  "lint-staged": {
+    "**/*": "npm run lint"
+  },
   "homepage": "https://github.com/subramanian-elavathur/good-vibes#readme",
   "devDependencies": {
     "@types/node": "^17.0.0",
+    "@typescript-eslint/eslint-plugin": "^5.10.0",
+    "@typescript-eslint/parser": "^5.10.0",
     "codecov": "^3.8.3",
+    "eslint": "^8.7.0",
+    "eslint-config-prettier": "^8.3.0",
+    "husky": "^7.0.4",
+    "lint-staged": "^12.2.2",
     "nyc": "^15.1.0",
+    "prettier": "2.5.1",
     "typescript": "^4.3.5"
   },
   "dependencies": {

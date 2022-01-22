@@ -1,4 +1,4 @@
-const { before, test, DEBUG } = require("../lib/index");
+import { before, test, DEBUG } from "../src";
 
 // When running in debug mode only tests tagged with DEBUG group are run, all other tests are skipped
 // Good vibes also exits with a return code of 1 to prevent tests from being, checked into your codebase accidentally

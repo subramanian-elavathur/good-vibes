@@ -1,4 +1,4 @@
-const { group } = require("../lib/index");
+import { group } from "../src";
 
 // good-vibes also exports a "group" function which wraps the standard
 // methods: before, test, and after with group name so your tests can be

@@ -152,7 +152,7 @@ export default class TestContext extends Context {
       const existingValue = JSON.parse(data);
       const diff = Diff.diffJson(actualValue, existingValue);
       if (diff?.length) {
-        let failed = diff.reduce((failed, part) => {
+        const failed = diff.reduce((failed, part) => {
           failed = failed || part.added || part.removed;
           return failed;
         }, false);
