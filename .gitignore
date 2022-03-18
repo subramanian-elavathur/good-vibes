@@ -39,3 +39,5 @@ typings/
 *.tgz
 
 /lib
+
+/test-results
