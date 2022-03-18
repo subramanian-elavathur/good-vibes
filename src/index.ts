@@ -1,6 +1,7 @@
 import Context from "./Context";
 import TestContext from "./TestContext";
 import log, { LogLevel } from "./log";
+import SimpleTAPReporter from "./SimpleTAPReporter";
 
 interface BeforeAfter {
   (context: Context): void;
@@ -26,7 +27,7 @@ interface GroupedTests {
   [key: string]: TestGroup;
 }
 
-interface TestResult {
+export interface TestResult {
   name: string;
   status: boolean;
   group: string;
@@ -37,6 +38,8 @@ interface Options {
   timeout?: number;
   snapshotsDirectory?: string;
   returnCodeOnFailure?: number;
+  reportTestResults?: boolean;
+  testResultsDirectory?: string;
 }
 
 const DEFAULT_TEST_GROUP = "Default";
@@ -160,7 +163,8 @@ const runBeforeOrAfter = async (
 
 const runTestsInAGroup = async (
   group: string,
-  options?: Options
+  options?: Options,
+  reporter?: SimpleTAPReporter
 ): Promise<TestResult[]> => {
   const { before, tests, after, sync } = testStore[group];
   log(
@@ -194,6 +198,7 @@ const runTestsInAGroup = async (
     log(`Finished: After script in ${(endTime - startTime) / 1000} seconds\n`);
   }
   log(`\nFinished running ${tests.length} tests from ${group} group\n`);
+  reporter?.add(group, results);
   return results.filter((each) => !each.status);
 };
 
@@ -216,8 +221,12 @@ const run = async (options?: Options) => {
     []
   ).length;
   let failedTests: TestResult[] = [];
+  const reporter = options.reportTestResults
+    ? new SimpleTAPReporter(options.testResultsDirectory)
+    : undefined;
   if (testStore[DEBUG]?.tests?.length) {
-    await runTestsInAGroup(DEBUG, options);
+    await runTestsInAGroup(DEBUG, options, reporter);
+    await reporter?.report();
     log(
       `[Important] Good vibes is running in Debug mode [Important]\n\nDebug mode allows you to run one or more tests to help you debug them easily.\nDebug mode always exits with return code 1 to prevent this change from being accidentally checked in to your codebase.\nSee logs above to find which tests were tagged to 'Debug' group and remove that group tag to resume normal mode.`
     );
@@ -227,10 +236,15 @@ const run = async (options?: Options) => {
       if (!testStore[group].tests.length) {
         continue;
       }
-      const failedTestsInGroup = await runTestsInAGroup(group, options);
+      const failedTestsInGroup = await runTestsInAGroup(
+        group,
+        options,
+        reporter
+      );
       failedTests = [...failedTests, ...failedTestsInGroup];
     }
     if (failedTests?.length) {
+      await reporter?.report();
       log(
         `Hey ${failedTests.length}/${totalTests} tests failed, but its going to be ok. Start by going through the list below and adding some logs to figure out whats going wrong:`
       );
@@ -243,6 +257,7 @@ const run = async (options?: Options) => {
       );
       process.exit(options?.returnCodeOnFailure ?? 1);
     }
+    await reporter?.report();
     log(`All ${totalTests} tests passed, good vibes :)`);
     process.exit(0);
   }
