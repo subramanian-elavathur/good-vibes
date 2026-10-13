@@ -29,4 +29,22 @@ test("Values JSON cannot serialize", (ctx) => {
   ctx.check(1n, 2n).check(circular, { name: "circular" }).done();
 });
 
+test("Strict equality", (ctx) => {
+  ctx.check({ a: undefined }, {}).check(1, Object(1)).done();
+});
+
+test("Errors", async (ctx) => {
+  const boom = () => {
+    throw new Error("boom");
+  };
+  ctx
+    .throws(boom)
+    .throws(boom, "boom")
+    .throws(boom, "bang")
+    .throws(() => {});
+  await ctx.rejects(Promise.reject(new Error("nope")), /no/);
+  await ctx.rejects(() => Promise.reject(new Error("nope")), /yes/);
+  await ctx.rejects(Promise.resolve());
+});
+
 run(options);

@@ -17,15 +17,15 @@ describe("errors thrown by tests", () => {
     assert.match(stdout, /^Hey 3\/4 tests failed, but its going to be ok\./m);
     assert.match(
       stdout,
-      /^1\. \[Default\] Sync throw \(thrown synchronously\)$/m,
+      /^1\. Default › Sync throw \(thrown synchronously\)$/m,
     );
     assert.match(
       stdout,
-      /^2\. \[Default\] Async rejection \(rejected asynchronously\)$/m,
+      /^2\. Default › Async rejection \(rejected asynchronously\)$/m,
     );
     assert.match(
       stdout,
-      /^3\. \[Default\] Rejects with a string \(not an error object\)$/m,
+      /^3\. Default › Rejects with a string \(not an error object\)$/m,
     );
     assert.match(stdout, /^Finished: Passes \[PASSED in [\d.]+ seconds\]$/m);
   });
@@ -66,6 +66,39 @@ describe("assertions", () => {
     assert.match(stdout, /^Finished: Second assertion fails \[FAILED/m);
   });
 
+  it("use strict equality", async () => {
+    const { stdout } = await runScript("test/fixtures/assertions.mjs");
+    assert.match(
+      stdout,
+      /^Log: Strict equality: Assertion 1: Expected \{ a: undefined \} to match \{\}$/m,
+    );
+    assert.match(
+      stdout,
+      /^Log: Strict equality: Assertion 2: Expected 1 to match \[Number: 1\]$/m,
+    );
+  });
+
+  it("check errors thrown and promises rejected", async () => {
+    const { stdout } = await runScript("test/fixtures/assertions.mjs");
+    assert.match(stdout, /^Log: Errors: 3\/7 Assertions PASSED$/m);
+    assert.match(
+      stdout,
+      /^Log: Errors: Assertion 3: Expected error message 'boom' to equal 'bang'$/m,
+    );
+    assert.match(
+      stdout,
+      /^Log: Errors: Assertion 4: Expected function to throw$/m,
+    );
+    assert.match(
+      stdout,
+      /^Log: Errors: Assertion 6: Expected error message 'nope' to match \/yes\/$/m,
+    );
+    assert.match(
+      stdout,
+      /^Log: Errors: Assertion 7: Expected promise to reject$/m,
+    );
+  });
+
   it("can print values JSON.stringify cannot handle", async () => {
     const { stdout, stderr } = await runScript("test/fixtures/assertions.mjs");
     assert.equal(stderr, "");
@@ -92,7 +125,7 @@ describe("before and after scripts", () => {
     );
     assert.match(
       stdout,
-      /\[Broken before\] Needs setup \(Before script failed: setup exploded\)$/m,
+      /Broken before › Needs setup \(Before script failed: setup exploded\)$/m,
     );
   });
 
@@ -107,10 +140,7 @@ describe("before and after scripts", () => {
       stdout,
       /^Hey 1\/3 tests failed and 1 after script\(s\) failed, but its going to be ok\./m,
     );
-    assert.match(
-      stdout,
-      /\[Broken after\] After script \(teardown exploded\)$/m,
-    );
+    assert.match(stdout, /Broken after › After script \(teardown exploded\)$/m);
     assert.match(stdout, /^Finished: Fine \[PASSED/m);
     assert.match(stdout, /^Finished: Also fine \[PASSED/m);
   });
@@ -128,9 +158,9 @@ describe("timeout", () => {
     );
     assert.match(
       stdout,
-      /did they forget to call done\(\)\?\n- \[Default\] Forgets to call done$/m,
+      /^The following did not finish:\n- Default › Forgets to call done$/m,
     );
-    assert.doesNotMatch(stdout, /- \[Default\] Remembers to call done/);
+    assert.doesNotMatch(stdout, /- Default › Remembers to call done/);
   });
 });
 
@@ -156,16 +186,31 @@ describe("executionTimePrecision", () => {
 });
 
 describe("colors", () => {
-  it("highlights passes and failures unless NO_COLOR is set", async () => {
+  it("are used when FORCE_COLOR is set", async () => {
     const { stdout } = await runScript("test/fixtures/errors.mjs", {
-      env: { NO_COLOR: "" },
+      env: { NO_COLOR: undefined, FORCE_COLOR: "1" },
     });
     assert.ok(stdout.includes("\x1b[32mFinished: Passes [PASSED"));
     assert.ok(stdout.includes("\x1b[31mFinished: Sync throw [FAILED"));
   });
 
-  it("are disabled when NO_COLOR is set", async () => {
+  it("are not used when stdout is not a terminal", async () => {
+    const { stdout } = await runScript("test/fixtures/errors.mjs", {
+      env: { NO_COLOR: undefined },
+    });
+    assert.ok(!stdout.includes("\x1b["));
+  });
+
+  it("are not used when NO_COLOR is set", async () => {
     const { stdout } = await runScript("test/fixtures/errors.mjs");
     assert.ok(!stdout.includes("\x1b["));
+  });
+});
+
+describe("run()", () => {
+  it("fails when no tests are registered", async () => {
+    const { code, stdout } = await runScript("test/fixtures/no-tests.mjs");
+    assert.equal(code, 1);
+    assert.match(stdout, /^No tests found$/m);
   });
 });

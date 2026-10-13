@@ -1,51 +1,53 @@
+import assert from "node:assert/strict";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import { before, test, after } from "good-vibes";
 
 // Groups are just strings that group together a set of related tests
-// Using groups allows you to specify before and after methods as described below
+// Using groups allows you to specify before and after scripts as described below
 const TASH_SULTANA = "Tash Sultana";
 
-let numbers;
-let strings;
+let directory;
 
-// If you need to perform actions before your tests start running, you may perform them here
-// Once you are done with the setup, you must call done()
-before((ctx) => {
-  ctx.log("Here is an example where we set a value synchronously");
-  numbers = [1, 2, 3, 4, 5];
-  ctx.log("And here we have an asynchronous example");
-  setTimeout(() => {
-    ctx.log("This log prints after 2 seconds");
-    strings = ["this", "value", "is", "set", "after", "2", "seconds"];
-    ctx.done(); // dont forget to call done :)
-  }, 2000);
+// before runs once, before the tests in the group
+before(async () => {
+  directory = await mkdtemp(path.join(tmpdir(), "good-vibes-"));
+  await writeFile(path.join(directory, "song.txt"), "Jungle");
 }, TASH_SULTANA);
 
-// lets write our first test
+// Tests in a group run one after another, in the order they are declared, so
+// later tests can build on earlier ones
 
 test(
   "Jungle",
-  (ctx) => {
-    ctx.check(5, numbers.length).check("1,2,3,4,5", numbers.join(",")).done();
+  async () => {
+    assert.equal(
+      await readFile(path.join(directory, "song.txt"), "utf8"),
+      "Jungle",
+    );
   },
   TASH_SULTANA,
 );
 
 test(
   "Notion",
-  (ctx) => {
-    ctx
-      .check(7, strings.length)
-      .check("this value is set after 2 seconds", strings.join(" "))
-      .done();
+  async () => {
+    await writeFile(path.join(directory, "song.txt"), "Notion");
   },
   TASH_SULTANA,
 );
 
-after((ctx) => {
-  ctx.log(
-    "In the after method you may perform any cleanup you like. Its useful to reset state of global variables if you changed them.",
-  );
-  numbers = undefined;
-  strings = undefined;
-  ctx.done();
-}, TASH_SULTANA); // group name is important so dont forget it :)
+test(
+  "Mystik",
+  async () => {
+    assert.equal(
+      await readFile(path.join(directory, "song.txt"), "utf8"),
+      "Notion",
+    );
+  },
+  TASH_SULTANA,
+);
+
+// after runs once all tests in the group finished, even if some failed
+after(() => rm(directory, { recursive: true, force: true }), TASH_SULTANA); // group name is important so dont forget it :)

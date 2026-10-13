@@ -1,6 +1,6 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
-import type { TestResult } from "./index";
+import type { TestResult } from "./runner";
 import log from "./log";
 
 const DEFAULT_OUTPUT_DIRECTORY = "test-results";
@@ -12,11 +12,15 @@ const reporterLog = (message: string) =>
 // "#" starts a directive (e.g. "# SKIP") in TAP so it must be escaped
 const escapeDescription = (name: string) => name.replace(/#/g, "\\#");
 
+// Nested group names are separated by " › "
 const toFileName = (group: string) =>
-  `${group.replace(/[\s/\\]+/g, "-").toLowerCase()}.tap`;
+  `${group.replace(/[\s/\\›]+/g, "-").toLowerCase()}.tap`;
 
 const toTestPoint = (result: TestResult, index: number) => {
   const testPoint = `${result.status ? "ok" : "not ok"} ${index + 1} ${escapeDescription(result.name)}`;
+  if (result.skipped) {
+    return `${testPoint} # SKIP${result.message ? ` ${result.message}` : ""}`;
+  }
   // JSON strings are valid YAML, which keeps the diagnostic block well formed
   return result.message === undefined
     ? testPoint

@@ -16,17 +16,26 @@ describe("TAP reporter", () => {
     const reports = path.join(cwd, "reports");
     assert.deepEqual((await readdir(reports)).sort(), [
       "default.tap",
+      "some-group-name-inner.tap",
       "some-group-name.tap",
     ]);
     assert.equal(
       await readFile(path.join(reports, "default.tap"), "utf8"),
       [
         "TAP version 13",
-        "1..2",
+        "1..3",
         "ok 1 Passes",
         "not ok 2 Issue \\#42 is fixed",
+        "  ---",
+        '  message: "Assertion 1: Expected 1 to match 2"',
+        "  ...",
+        "ok 3 Later # SKIP not yet",
         "",
       ].join("\n"),
+    );
+    assert.equal(
+      await readFile(path.join(reports, "some-group-name-inner.tap"), "utf8"),
+      ["TAP version 13", "1..1", "ok 1 Nested", ""].join("\n"),
     );
     assert.equal(
       await readFile(path.join(reports, "some-group-name.tap"), "utf8"),
@@ -54,6 +63,7 @@ describe("TAP reporter", () => {
     });
     assert.deepEqual((await readdir(path.join(cwd, "test-results"))).sort(), [
       "default.tap",
+      "some-group-name-inner.tap",
       "some-group-name.tap",
     ]);
   });

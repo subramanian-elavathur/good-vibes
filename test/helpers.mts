@@ -20,19 +20,20 @@ export interface RunOptions {
   options?: Record<string, unknown>;
 }
 
-/**
- * Runs a script (relative to the repository root) in a child process. Each run
- * needs its own process because good-vibes exits once the tests finish.
- */
-export const runScript = (
-  script: string,
+// node --test may set FORCE_COLOR, which Node.js warns about when NO_COLOR is
+// set too, so children only get it when a test asks for it
+const inheritedEnvironment = { ...process.env };
+delete inheritedEnvironment.FORCE_COLOR;
+
+const runNode = (
+  args: string[],
   { cwd = ROOT, env = {}, options = {} }: RunOptions = {},
 ): Promise<RunResult> =>
   new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, [path.join(ROOT, script)], {
+    const child = spawn(process.execPath, args, {
       cwd,
       env: {
-        ...process.env,
+        ...inheritedEnvironment,
         NO_COLOR: "1",
         GOOD_VIBES_OPTIONS: JSON.stringify(options),
         ...env,
@@ -49,6 +50,24 @@ export const runScript = (
     child.on("error", reject);
     child.on("close", (code) => resolve({ code, stdout, stderr }));
   });
+
+/**
+ * Runs a script (relative to the repository root) in a child process. Each run
+ * needs its own process because good-vibes exits once the tests finish.
+ */
+export const runScript = (
+  script: string,
+  options?: RunOptions,
+): Promise<RunResult> => runNode([path.join(ROOT, script)], options);
+
+/**
+ * Runs the good-vibes command from the build output.
+ */
+export const runCli = (
+  args: string[],
+  options?: RunOptions,
+): Promise<RunResult> =>
+  runNode([path.join(ROOT, "lib", "cli.js"), ...args], options);
 
 /**
  * Creates a temporary directory that is removed once the test finishes.

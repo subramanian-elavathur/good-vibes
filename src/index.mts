@@ -5,6 +5,7 @@ export {
   after,
   before,
   calculateExecutionTime,
+  concurrent,
   DEBUG,
   group,
   run,
@@ -15,9 +16,13 @@ export {
 
 export type {
   Context,
+  ExpectedMessage,
+  Group,
   HookFunction,
+  HookOptions,
   Options,
   TestContext,
   TestFunction,
+  TestOptions,
   TestResult,
 } from "./index.js";

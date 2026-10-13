@@ -5,7 +5,13 @@ import globals from "globals";
 import tseslint from "typescript-eslint";
 
 export default defineConfig([
-  globalIgnores(["lib/", "coverage/", "test-results/"]),
+  globalIgnores([
+    "lib/",
+    "coverage/",
+    "test-results/",
+    // A separate project with its own ESLint config, see test/consumer/check.mjs
+    "test/consumer/template/**",
+  ]),
   {
     languageOptions: {
       globals: globals.node,

@@ -15,6 +15,7 @@ const API = [
   "after",
   "before",
   "calculateExecutionTime",
+  "concurrent",
   "group",
   "run",
   "sync",

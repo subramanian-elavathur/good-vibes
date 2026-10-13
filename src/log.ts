@@ -12,8 +12,27 @@ const COLORS: Partial<Record<LogLevel, string>> = {
   [LogLevel.ERROR]: "\x1b[31m", // red
 };
 
-// Respect the NO_COLOR convention, see https://no-color.org
-const colorsEnabled = () => !process.env.NO_COLOR;
+/**
+ * Colors are used when stdout is a terminal that supports them. NO_COLOR
+ * (https://no-color.org) turns them off and FORCE_COLOR turns them on, e.g.
+ * for CI systems that render colors, or for test files the CLI runs in a
+ * child process.
+ */
+export const colorsEnabled = (): boolean => {
+  if (process.env.NO_COLOR) {
+    return false;
+  }
+  const forceColor = process.env.FORCE_COLOR;
+  if (forceColor !== undefined) {
+    return forceColor !== "0" && forceColor !== "false";
+  }
+  const { stdout } = process;
+  return (
+    stdout.isTTY === true &&
+    typeof stdout.hasColors === "function" &&
+    stdout.hasColors()
+  );
+};
 
 const log = (message: string, level: LogLevel = LogLevel.INFO) => {
   const color = colorsEnabled() ? COLORS[level] : undefined;

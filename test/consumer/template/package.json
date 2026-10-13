@@ -1,0 +1,14 @@
+{
+  "name": "good-vibes-consumer",
+  "private": true,
+  "description": "Mimics glitch-db to check good-vibes works for it, see ../check.mjs",
+  "type": "module",
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^24.19.2",
+    "c8": "^12.0.0",
+    "eslint": "^10.12.0",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.71.2"
+  }
+}

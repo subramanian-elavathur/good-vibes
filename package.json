@@ -42,6 +42,9 @@
   },
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
+  "bin": {
+    "good-vibes": "./lib/cli.js"
+  },
   "files": [
     "lib",
     "src"
@@ -51,41 +54,41 @@
     "build": "npm run clean && tsc --project tsconfig.build.json",
     "typecheck": "tsc",
     "lint": "eslint . && prettier --check .",
-    "lint:package": "attw --pack .",
+    "lint:package": "npm run build && publint --strict && attw --pack .",
     "format": "prettier --write .",
     "test": "npm run build && node --test \"test/**/*.test.mts\"",
+    "test:consumer": "node test/consumer/check.mjs",
     "coverage": "npm run build && c8 node --test \"test/**/*.test.mts\"",
-    "examples": "npm run build && node examples/index.mjs",
+    "examples": "npm run build && node lib/cli.js --snapshots-dir examples/__snapshots__ \"examples/*.test.{mjs,mts}\"",
     "prepack": "npm run build",
     "prepare": "husky"
   },
   "lint-staged": {
     "*.{ts,mts,cts,js,mjs,cjs}": [
-      "eslint --fix",
+      "eslint --fix --config eslint.config.mjs --no-warn-ignored",
       "prettier --write"
     ],
     "*.{json,md,yml,yaml}": "prettier --write"
   },
   "dependencies": {
-    "diff": "^9.0.0",
-    "lodash": "^4.18.1"
+    "diff": "^9.0.0"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
     "@eslint/js": "^10.0.1",
-    "@types/lodash": "^4.17.26",
-    "@types/node": "^22.20.5",
+    "@types/node": "^24.19.2",
     "c8": "^12.0.0",
     "eslint": "^10.12.0",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^17.13.0",
     "husky": "^9.1.7",
-    "lint-staged": "^16.4.0",
+    "lint-staged": "^17.6.0",
     "prettier": "3.9.10",
+    "publint": "^0.3.25",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.71.2"
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=24"
   }
 }

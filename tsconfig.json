@@ -1,8 +1,8 @@
 {
-  // Type-checks everything (library + tests). Emitting is done by tsconfig.build.json.
+  // Type-checks the library, tests and examples. Emitting is done by tsconfig.build.json.
   "compilerOptions": {
-    "target": "es2023",
-    "lib": ["es2023"],
+    "target": "es2025",
+    "lib": ["es2025"],
     "module": "nodenext",
     "types": ["node"],
     "strict": true,
@@ -16,7 +16,13 @@
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "noEmit": true,
-    "allowImportingTsExtensions": true
+    "allowImportingTsExtensions": true,
+    // Tests and examples import the package by name, type check them against
+    // the sources so they do not need a build
+    "paths": {
+      "good-vibes": ["./src/index.mts"]
+    }
   },
-  "include": ["src", "test"]
+  "include": ["src", "test", "examples"],
+  "exclude": ["test/consumer/template"]
 }
