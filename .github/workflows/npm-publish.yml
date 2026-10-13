@@ -1,43 +1,44 @@
-# This workflow will run tests using node and then publish a package to GitHub Packages when a release is created
-# For more information see: https://help.github.com/actions/language-and-framework-guides/publishing-nodejs-packages
-
-name: Node.js Package
+# Publishes the package to npm and GitHub Packages when a release is published.
+# Bump "version" in package.json before creating the release.
+name: Publish
 
 on:
   release:
-    types: [created]
+    types: [published]
 
 jobs:
   publish-npm:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # npm provenance
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
-          node-version: 16
-          registry-url: https://registry.npmjs.org/
+          node-version-file: .nvmrc
+          registry-url: https://registry.npmjs.org
       - run: npm ci
-      - run: npm run coverage-codecov
-      - run: npm publish
+      - run: npm test
+      - run: npm publish --provenance
         env:
-          NODE_AUTH_TOKEN: ${{secrets.npm_token}}
+          NODE_AUTH_TOKEN: ${{ secrets.npm_token }}
 
   publish-gpr:
+    needs: publish-npm
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
-          node-version: 16
-          registry-url: https://npm.pkg.github.com/
+          node-version-file: .nvmrc
+          registry-url: https://npm.pkg.github.com
       - run: npm ci
-      - run: npm run coverage-codecov
-      - run: echo "registry=https://npm.pkg.github.com/" >> .npmrc
-      - run: |
-          sed -i 's,"name": "good-vibes","name": "@subramanian-elavathur/good-vibes",' package.json
+      # GitHub Packages only supports scoped packages
+      - run: npm pkg set name=@subramanian-elavathur/good-vibes
       - run: npm publish
         env:
-          NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
