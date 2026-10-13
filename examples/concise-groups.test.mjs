@@ -1,4 +1,4 @@
-import { group } from "../src";
+import { group } from "good-vibes";
 
 // good-vibes also exports a "group" function which wraps the standard
 // methods: before, test, and after with group name so your tests can be

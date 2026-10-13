@@ -1,4 +1,4 @@
-import { before, test, DEBUG } from "../src";
+import { before, test, DEBUG } from "good-vibes";
 
 // When running in debug mode only tests tagged with DEBUG group are run, all other tests are skipped
 // Good vibes also exits with a return code of 1 to prevent tests from being, checked into your codebase accidentally
@@ -16,5 +16,5 @@ test(
       ctx.check(1, 1).done();
     }, 2000);
   },
-  DEBUG
+  DEBUG,
 );

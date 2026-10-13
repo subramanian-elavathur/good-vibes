@@ -1,5 +1,6 @@
-import log, { LogLevel } from "./log";
-interface Logger {
+import log, { type LogLevel } from "./log";
+
+export interface Logger {
   (message: string, level?: LogLevel): void;
 }
 
@@ -12,6 +13,9 @@ export interface Resolve {
   (result: boolean): void;
 }
 
+/**
+ * Context passed to `before` and `after` scripts.
+ */
 export default class Context {
   readonly name: string;
   readonly resolve: Resolve;
@@ -23,11 +27,17 @@ export default class Context {
     this.logger = createLogger(name);
   }
 
-  log(message: string) {
+  /**
+   * Logs a message prefixed with the name of the test or script.
+   */
+  log(message: string): void {
     this.logger(message);
   }
 
-  done() {
+  /**
+   * Marks the test or script as complete.
+   */
+  done(): void {
     this.resolve(true);
   }
 }

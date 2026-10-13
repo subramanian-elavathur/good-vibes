@@ -1,4 +1,4 @@
-import { before, test, after } from "../src";
+import { before, test, after } from "good-vibes";
 
 // Groups are just strings that group together a set of related tests
 // Using groups allows you to specify before and after methods as described below
@@ -27,7 +27,7 @@ test(
   (ctx) => {
     ctx.check(5, numbers.length).check("1,2,3,4,5", numbers.join(",")).done();
   },
-  TASH_SULTANA
+  TASH_SULTANA,
 );
 
 test(
@@ -38,12 +38,12 @@ test(
       .check("this value is set after 2 seconds", strings.join(" "))
       .done();
   },
-  TASH_SULTANA
+  TASH_SULTANA,
 );
 
 after((ctx) => {
   ctx.log(
-    "In the after method you may perform any cleanup you like. Its useful to reset state of global variables if you changed them."
+    "In the after method you may perform any cleanup you like. Its useful to reset state of global variables if you changed them.",
   );
   numbers = undefined;
   strings = undefined;
