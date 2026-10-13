@@ -1,5 +1,9 @@
 # Publishes the package to npm and GitHub Packages when a release is published.
 # Bump "version" in package.json before creating the release.
+#
+# npm authenticates with trusted publishing (OIDC), configured for this
+# repository and workflow file in the package settings on npmjs.com, so no npm
+# token is needed. It also signs the package with provenance.
 name: Publish
 
 on:
@@ -11,18 +15,15 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write # npm provenance
+      id-token: write # npm trusted publishing and provenance
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
-          registry-url: https://registry.npmjs.org
       - run: npm ci
       - run: npm test
-      - run: npm publish --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.npm_token }}
+      - run: npm publish
 
   publish-gpr:
     needs: publish-npm

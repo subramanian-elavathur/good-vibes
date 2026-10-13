@@ -610,4 +610,4 @@ The test suite uses the [Node.js test runner](https://nodejs.org/api/test.html).
 
 [`test/consumer`](./test/consumer) contains a project set up like [glitch-db](https://github.com/subramanian-elavathur/glitch-db): an ES module package with TypeScript tests that Node.js runs directly, type checked with `tsc`, linted with typescript-eslint's type checked rules and covered with `c8`. `npm run test:consumer` installs the packed package there and checks all of that works.
 
-To publish a new version, update the version in `package.json` and [CHANGELOG.md](./CHANGELOG.md), then create a GitHub release. The release workflow tests and publishes the package.
+To publish a new version, update the version in `package.json` and [CHANGELOG.md](./CHANGELOG.md), then create a GitHub release. The release workflow tests the package and publishes it to npm with [trusted publishing](https://docs.npmjs.com/trusted-publishers), so the package's settings on npmjs.com must list this repository and the `npm-publish.yml` workflow as a trusted publisher.
