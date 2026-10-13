@@ -1,13 +1,28 @@
 {
+  // Type-checks the library, tests and examples. Emitting is done by tsconfig.build.json.
   "compilerOptions": {
-    "outDir": "lib/",
-    "rootDirs": ["src/", "/test"],
-    "sourceMap": true,
-    "target": "ES2020",
-    "listEmittedFiles": true,
-    "module": "CommonJS",
-    "declaration": true,
-    "declarationMap": true,
-    "declarationDir": "typings/"
-  }
+    "target": "es2025",
+    "lib": ["es2025"],
+    "module": "nodenext",
+    "types": ["node"],
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "erasableSyntaxOnly": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    // Tests and examples import the package by name, type check them against
+    // the sources so they do not need a build
+    "paths": {
+      "good-vibes": ["./src/index.mts"]
+    }
+  },
+  "include": ["src", "test", "examples"],
+  "exclude": ["test/consumer/template"]
 }

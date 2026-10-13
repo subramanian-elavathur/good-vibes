@@ -1,76 +1,58 @@
-import { TestResult } from ".";
-import * as fs from "fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
+import path from "node:path";
+import type { TestResult } from "./runner";
+import log from "./log";
 
 const DEFAULT_OUTPUT_DIRECTORY = "test-results";
 const TAP_VERSION_DECLARATION = "TAP version 13";
-const TAP_PLAN_PREFIX = "1..";
-const TAP_OK = "ok";
-const TAP_NOT_OK = "not ok";
+
+const reporterLog = (message: string) =>
+  log(`Test Results Reporter: ${message}`);
+
+// "#" starts a directive (e.g. "# SKIP") in TAP so it must be escaped
+const escapeDescription = (name: string) => name.replace(/#/g, "\\#");
+
+// Nested group names are separated by " › "
+const toFileName = (group: string) =>
+  `${group.replace(/[\s/\\›]+/g, "-").toLowerCase()}.tap`;
+
+const toTestPoint = (result: TestResult, index: number) => {
+  const testPoint = `${result.status ? "ok" : "not ok"} ${index + 1} ${escapeDescription(result.name)}`;
+  if (result.skipped) {
+    return `${testPoint} # SKIP${result.message ? ` ${result.message}` : ""}`;
+  }
+  // JSON strings are valid YAML, which keeps the diagnostic block well formed
+  return result.message === undefined
+    ? testPoint
+    : `${testPoint}\n  ---\n  message: ${JSON.stringify(result.message)}\n  ...`;
+};
 
 export default class SimpleTAPReporter {
-  private outputDirectory: string;
-  private resultsBuffer: Record<string, TestResult[]>;
-  private logger: (message: string) => void;
+  readonly outputDirectory: string;
+  readonly #results = new Map<string, TestResult[]>();
 
   constructor(outputDirectory?: string) {
     this.outputDirectory = outputDirectory ?? DEFAULT_OUTPUT_DIRECTORY;
-    this.resultsBuffer = {};
-    this.logger = (message) => console.log(`Test Results Reporter: ${message}`);
   }
 
-  add(groupName: string, results: TestResult[]) {
-    this.resultsBuffer[groupName] = results;
+  add(groupName: string, results: TestResult[]): void {
+    this.#results.set(groupName, results);
   }
 
-  private async initDirectory() {
-    let stat;
-    try {
-      stat = await fs.stat(this.outputDirectory);
-    } catch (e) {
-      this.logger(
-        `Test results directory does not exist, trying to create now`
-      );
-      try {
-        await fs.mkdir(this.outputDirectory, { recursive: true });
-        this.logger(`Test results directory created, lets go!`);
-      } catch (e) {
-        throw new Error(
-          `Failed to create test results directory due to error: ${e}`
-        );
-      }
-    }
-    if (stat) {
-      if (!stat.isDirectory()) {
-        throw new Error(
-          `Specified path for test results (${this.outputDirectory}) exists but is not a directory`
-        );
-      } else {
-        this.logger(`Directory already exists, lets go!`);
-      }
-    }
-  }
-
-  async report() {
-    this.logger(`Writing test results report`);
-    await this.initDirectory();
-    for (const group in this.resultsBuffer) {
-      const results = this.resultsBuffer[group];
-      if (!results?.length) {
-        this.logger(`Skipping group: ${group} as no test results found for it`);
-        continue;
-      }
-      const output = results.reduce((acc, each, index) => {
-        return `${acc}\n${each.status ? TAP_OK : TAP_NOT_OK} ${index + 1} ${
-          each.name
-        }`;
-      }, `${TAP_VERSION_DECLARATION}\n${TAP_PLAN_PREFIX}${results.length}`);
-      await fs.writeFile(
-        `${this.outputDirectory}/${group
-          .replace(/\s+/g, "-")
-          .toLowerCase()}.tap`,
-        output
+  async report(): Promise<void> {
+    reporterLog(`Writing test results report to ${this.outputDirectory}`);
+    await mkdir(this.outputDirectory, { recursive: true });
+    for (const [group, results] of this.#results) {
+      const output = [
+        TAP_VERSION_DECLARATION,
+        `1..${results.length}`,
+        ...results.map(toTestPoint),
+      ].join("\n");
+      await writeFile(
+        path.join(this.outputDirectory, toFileName(group)),
+        `${output}\n`,
       );
     }
-    this.logger(`Test results report written successfully\n`);
+    reporterLog(`Test results report written successfully\n`);
   }
 }
