@@ -1,6 +1,6 @@
 # good-vibes
 
-[![codecov](https://codecov.io/gh/subramanian-elavathur/good-vibes/branch/main/graph/badge.svg?token=1D68W4DNN1)](https://codecov.io/gh/subramanian-elavathur/good-vibes) ![npm-version](https://img.shields.io/npm/v/good-vibes?color=blue)
+[![CI](https://github.com/subramanian-elavathur/good-vibes/actions/workflows/ci.yml/badge.svg)](https://github.com/subramanian-elavathur/good-vibes/actions/workflows/ci.yml) [![codecov](https://codecov.io/gh/subramanian-elavathur/good-vibes/branch/main/graph/badge.svg?token=1D68W4DNN1)](https://codecov.io/gh/subramanian-elavathur/good-vibes) [![npm-version](https://img.shields.io/npm/v/good-vibes?color=blue)](https://www.npmjs.com/package/good-vibes) [![license](https://img.shields.io/npm/l/good-vibes)](./LICENSE)
 
 Good Vibes is a simple Node.js testing library designed to make writing and executing tests easy and fun.
 
@@ -9,36 +9,34 @@ It was inspired by, and written primarily while listening to, [Alicia Keys' Tiny
 ## Installation
 
 ```bash
-npm install good-vibes --save-dev
+npm install --save-dev good-vibes
 ```
+
+Good Vibes requires Node.js 22 or later. It works with both ES modules (`import`) and CommonJS (`require`), and ships with TypeScript types.
 
 ## Getting started
 
-Lets say you wanted to test the following function defined in `code.js`
+Lets say you wanted to test the following function defined in `src/code.js`
 
 ```javascript
 // defined in ./src/code.js
-const codeToTest = (firstName, lastName, age) => {
-    return {
-        name: {
-            first: firstName,
-            last: lastName,
-        },
-        age: age
-    }
-}
-export codeToTest;
-// use the following if you use commonjs style exports
-// exports.codeToTest = codeToTest
+export const codeToTest = (firstName, lastName, age) => {
+  return {
+    name: {
+      first: firstName,
+      last: lastName,
+    },
+    age: age,
+  };
+};
 ```
 
 Here is how you would write a test using good-vibes for this function
 
 ```javascript
 // defined in ./test/code.test.js
-import { codeToTest } from "./src/code";
 import run, { test } from "good-vibes";
-// alternatively `const { test, run } = require('good-vibes');
+import { codeToTest } from "../src/code.js";
 
 test("My first test", (context) => {
   const expected = {
@@ -53,12 +51,19 @@ test("My first test", (context) => {
 run(); // runs all your tests defined using the `test` api
 ```
 
+If your project uses CommonJS, `require` works too:
+
+```javascript
+const { run, test } = require("good-vibes");
+```
+
 To run this test add a script to your `package.json` file
 
 ```json
 {
   "name": "my-library",
   "version": "0.0.1",
+  "type": "module",
   "scripts": {
     "test": "node test/code.test.js"
   }
@@ -101,48 +106,80 @@ const testFunction = (context) => {
 
 A simple utility and assertion framework wrapped within the context of your test and group that provides the following api's:
 
-1. `check(expected, actual)`: uses [lodash.isEqual](https://lodash.com/docs/#isEqual) to perform deep equality checks on primitives and objects and more
-2. `done()`: marks test as complete
+1. `check(expected, actual)`: uses [lodash.isEqual](https://lodash.com/docs/#isEqual) to perform deep equality checks on primitives and objects and more. Returns the context so calls can be chained.
+2. `done()`: marks test as complete. The test passes if none of its assertions failed.
 3. `log(message)`: log provides a simple wrapper over `console.log` with the test name prefixed to your message to make them easier to find in the logs
 4. `snapshot(name, actual, updateBaseline)`: allows for snapshot testing, discussed later in this guide
 
 #### `groupName`
 
-Allows you to create a group of tests. More on this below. If not specified the test is assiged to the `Default` group.
+Allows you to create a group of tests. More on this below. If not specified the test is assigned to the `Default` group.
 
 ### `run`
 
-Calling the `run()` api starts the test execution. It accepts a configuration object as follows:
+Calling the `run()` api starts the test execution. Once all tests finish, good-vibes exits the process with return code `0` if every test passed, or `1` if any failed. It accepts an optional configuration object, shown here with the default values:
 
 ```javascript
 run({
   timeout: 300_000, // in milliseconds
-  snapshotsDirectory: "./test/__snapshots/", // string
-  executionTimePrecision: 4, // number
+  snapshotsDirectory: "test/__snapshots__",
+  returnCodeOnFailure: 1,
+  reportTestResults: false,
+  testResultsDirectory: "test-results",
+  executionTimePrecision: 3,
 });
 ```
 
 #### timeout
 
-This is the total amount of time all tests have to run before good-vibes end execution.
+This is the total amount of time all tests have to run before good-vibes ends execution.
 
-Default is set to `5 minutes`. After 5 minutes good-vibes will end all test execution and return with error code `1`
+Default is set to `5 minutes`. After 5 minutes good-vibes will end all test execution and return with error code `1`. It also lists the tests that had not finished, which usually means they forgot to call `context.done()`.
 
 #### snapshotsDirectory
 
-Default value is set to `./test/__snapshots__/`. For more details see section on `Snapshot Testing` below.
+Directory where snapshot baselines are stored, relative to the directory you run your tests from. Default value is set to `test/__snapshots__`. For more details see section on `Snapshot Testing` below.
+
+#### returnCodeOnFailure
+
+The return code good-vibes exits with when one or more tests fail. Default is `1`.
+
+#### reportTestResults
+
+When set to `true`, good-vibes writes a [TAP](https://testanything.org) report for each group of tests, which most CI systems can display. Default is `false`. See `Test Reports` below.
+
+#### testResultsDirectory
+
+Directory the test reports are written to, relative to the directory you run your tests from. Default is `test-results`.
 
 #### executionTimePrecision
 
-This option specifies the precision to which execution time of the tests are calculated . It is an optional value which is set to a default value of `3`.
+The number of decimal places used when printing how long each test took, in seconds. Default is `3` (millisecond precision).
 
-#### Running tests from multiple files
+### Running tests from multiple files
 
-TODO
+Test files only register tests, nothing runs until `run()` is called. So to split your tests across multiple files, import all of them from a single entry file and call `run()` once:
+
+```javascript
+// defined in ./test/index.js
+import run from "good-vibes";
+import "./users.test.js";
+import "./orders.test.js";
+
+run();
+```
+
+```json
+{
+  "scripts": {
+    "test": "node test/index.js"
+  }
+}
+```
 
 ## Asynchronous Testing
 
-All tests defined using `test` are considered to be asynchronous function. This is the reason you need to tell good-vibes that your test is complete by calling the `context.done()` api.
+All tests defined using `test` are considered to be asynchronous. This is the reason you need to tell good-vibes that your test is complete by calling the `context.done()` api.
 
 Here is an example of an asynchronous test
 
@@ -151,7 +188,7 @@ Here is an example of an asynchronous test
 import run, { test } from "good-vibes";
 
 const sayGreeting = async (message) => {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     setTimeout(() => resolve(`Hello, ${message}`), 2000); // resolve value after 2 seconds
   });
 };
@@ -165,6 +202,8 @@ test("Async Test", async (context) => {
 
 run(); // runs all your tests defined using the `test` api
 ```
+
+If a test throws an error, or returns a promise that rejects, the test fails and the error is logged along with its stack trace. The remaining tests keep running.
 
 ## Grouping tests
 
@@ -205,7 +244,7 @@ test(
       .check("this value is set after 2 seconds", strings.join(" "))
       .done();
   },
-  MY_GROUP
+  MY_GROUP,
 );
 
 after((ctx) => {
@@ -236,9 +275,11 @@ const beforeFunction = async (context) => {
 };
 ```
 
+If the `before` function throws an error (or returns a promise that rejects), the tests in its group are skipped and reported as failed. The `after` function still runs so you can clean up.
+
 ### `after`
 
-`after` function runs once after all tests have finished and has the same signature as `before`
+`after` function runs once after all tests have finished and has the same signature as `before`. If it fails, the test run fails too.
 
 ### Concise Groups
 
@@ -288,16 +329,30 @@ Sometimes the output of a function can be very large - making it cumbersome to t
 
 Snapshot tests allow you test for changes in the expected output. They do this by maintaining a `baseline` file with the expected output. Then whenever you run your test the actual output is compared against this baseline file and if they don't match the differences are reported as shown below:
 
-![Snapshot assertion failure](/docs/images/snapshot-testing.png "Snapshot assertion failure")
+```text
+Log: Kun Faya Kun: Snapshot Rockstar: FAILED, see diff below (- baseline, + actual)
+  {
+    "bool": false,
+    "date": "1990-07-18",
+    "enum": "json",
+    "random": 5,
+-   "random float": 69.768,
+-   "regEx": "hellooo world"
++   "random float": 69.767,
++   "regEx": "helloooooooooooooooo world"
+  }
+Log: Kun Faya Kun: 0/1 Assertions PASSED
+Finished: Kun Faya Kun [FAILED in 0.006 seconds]
+```
 
 ### Simple Example
 
 ```javascript
-import { group } from "good-vibes";
+import run, { group } from "good-vibes";
 
 const { test } = group("Snapshots");
 
-let createLargeObject = (value) => ({
+const createLargeObject = (value) => ({
   a: value,
   b: 123,
   c: true,
@@ -314,7 +369,7 @@ let createLargeObject = (value) => ({
   },
 });
 
-test("Large Object", (ctx) => {
+test("Large Object", async (ctx) => {
   // snapshot verifications are asynchronous so you must await its execution
   await ctx.snapshot("Check 1", createLargeObject("One"));
   // A single test may have one or more snapshot assertions, each snapshot inside a test must have a unique name
@@ -330,12 +385,12 @@ In the above example `good-vibes` will check if the output of `createLargeObject
 
 Notes:
 
-1. Snapshots internally use JSON.stringify to write the snapshot files, so please be careful while creating snapshots of objects with functions in them
+1. Snapshots internally use `JSON.stringify` to write the snapshot files, so please be careful while creating snapshots of objects with functions in them
 2. Order of keys in the object does not matter as the verification is performed on the parsed JSON object and not the json string itself
 
 ### Snapshot API
 
-The `snapshot` function allows you to define a test. It has the following signature:
+The `snapshot` function has the following signature:
 
 ```typescript
 async snapshot<Type>(snapshotName: string, actualValue: Type, rebase?: boolean): Promise<TestContext>
@@ -343,11 +398,13 @@ async snapshot<Type>(snapshotName: string, actualValue: Type, rebase?: boolean):
 
 ### Creating or updating a baseline
 
-The first time you run the snapshot test it will fail stating that the baseline file could not be found, similar to the image below:
+The first time you run the snapshot test it will fail stating that the baseline file could not be found, similar to this:
 
-![Snapshot missing failure](/docs/images/missing-baseline.png "Snapshot missing failure")
+```text
+Log: Large Object: Snapshot Check 1: FAILED as the baseline at test/__snapshots__/Snapshots/Large Object_Check 1.json could not be read (ENOENT: no such file or directory, open 'test/__snapshots__/Snapshots/Large Object_Check 1.json'). Set the rebase flag to true to create it
+```
 
-To create a new baseline or update an existing one, set the third argument of the `snapshot` api to `true`
+To create a new baseline or update an existing one, set the third argument of the `snapshot` api to `true`. Baselines are written as formatted JSON so changes to them are easy to review.
 
 **Important Note:** When you rebase a snapshot file, good-vibes will automatically **fail** that test. This is to safeguard against accidental updates to snapshot files and prevent this flag from being committed into source control
 
@@ -400,6 +457,7 @@ let strings;
 before((context) => {
   numbers = [1, 2, 3, 4, 5];
   strings = ["sample", "values"];
+  context.done();
 }, MY_GROUP);
 
 test(
@@ -407,24 +465,24 @@ test(
   (ctx) => {
     ctx.check(5, numbers.length).check("1,2,3,4,5", numbers.join(",")).done();
   },
-  MY_GROUP
+  MY_GROUP,
 );
 
 // You can invoke the sync api anywhere in any of your test files
 // Because tests only run when the `run()` api is called
-// good-vibes will ensure all tests in this group run synchonously
+// good-vibes will ensure all tests in this group run synchronously
 
 sync(MY_GROUP);
 
 test(
-  "My Test",
+  "My Other Test",
   (ctx) => {
     ctx
-      .check(7, strings.length)
+      .check(2, strings.length)
       .check("sample values", strings.join(" "))
       .done();
   },
-  MY_GROUP
+  MY_GROUP,
 );
 
 run();
@@ -433,7 +491,7 @@ run();
 ### Using the concise groups `sync` api
 
 ```javascript
-import run, { group } from "good-vibes"; // import sync from good-vibes
+import run, { group } from "good-vibes";
 
 const MY_GROUP = "My Group";
 
@@ -447,14 +505,15 @@ let strings;
 before((context) => {
   numbers = [1, 2, 3, 4, 5];
   strings = ["sample", "values"];
+  context.done();
 });
 
 test("My Test", (ctx) => {
   ctx.check(5, numbers.length).check("1,2,3,4,5", numbers.join(",")).done();
 });
 
-test("My Test", (ctx) => {
-  ctx.check(7, strings.length).check("sample values", strings.join(" ")).done();
+test("My Other Test", (ctx) => {
+  ctx.check(2, strings.length).check("sample values", strings.join(" ")).done();
 });
 
 run();
@@ -466,16 +525,16 @@ When you have too many tests in your application, its often useful to be able to
 
 good-vibes support this using a special purpose group name called `Debug`. `Debug` group name can be used in `before`, `test` and `after` api's and even inside concise groups.
 
-**Recommendation**: We recommend that you `import { DEBUG } from 'good-vibes'` instead of redefining the variable yourself. This will isolate your tests from changes to this group name in the future.
+**Recommendation**: We recommend that you `import { DEBUG } from "good-vibes"` instead of redefining the variable yourself. This will isolate your tests from changes to this group name in the future.
 
 **Important Note**: When running in debug mode good-vibes exits with failure return code 1 - this is to prevent the debug flag from being accidentally committed to source control. The following disclaimer will also be printed in the logs:
 
-![Debug mode disclaimer](/docs/images/debug-mode.png "Debug mode disclainer")
+![Debug mode disclaimer](/docs/images/debug-mode.png "Debug mode disclaimer")
 
 ### Using the `Debug` group
 
 ```javascript
-const run, { before, test, DEBUG } = require("../lib/index");
+import run, { before, test, DEBUG } from "good-vibes";
 
 // When running in debug mode only tests tagged with DEBUG group are run,
 // all other tests are skipped
@@ -495,7 +554,7 @@ test(
       ctx.check(1, 1).done();
     }, 2000);
   },
-  DEBUG
+  DEBUG,
 );
 
 run();
@@ -508,29 +567,29 @@ import run, { group, DEBUG } from "good-vibes";
 
 const MY_GROUP = "My Group";
 
-const { before, test, sync } = group(MY_GROUP);
+const { before, test } = group(MY_GROUP);
 
 let numbers;
 let strings;
 
+// always ensure that you run your before blocks in DEBUG mode too
+// if they perform setup for the test being debugged
 before((context) => {
   numbers = [1, 2, 3, 4, 5];
   strings = ["sample", "values"];
+  context.done();
 }, DEBUG);
-
-// always ensure that you run your before blocks in DEBUG mode too
-// if you before some setup for the test being debugged
 
 test(
   "My Test",
   (ctx) => {
     ctx.check(5, numbers.length).check("1,2,3,4,5", numbers.join(",")).done();
   },
-  DEBUG
+  DEBUG,
 ); // running only one test in DEBUG mode
 
-test("My Test", (ctx) => {
-  ctx.check(7, strings.length).check("sample values", strings.join(" ")).done();
+test("My Other Test", (ctx) => {
+  ctx.check(2, strings.length).check("sample values", strings.join(" ")).done();
 });
 
 run();
@@ -540,19 +599,61 @@ run();
 
 [Instructions for VS Code](https://code.visualstudio.com/docs/nodejs/nodejs-debugging)
 
-## Code Coverage
+## Test Reports
 
-Code coverage reports can be generated using the `nyc` package. For up-to-date instruction please check out [Installation & Usage section of nyc](https://github.com/istanbuljs/nyc#installation--usage)
+Set `reportTestResults` to `true` to write a [TAP version 13](https://testanything.org/tap-version-13-specification.html) report for each group of tests to the `test-results` directory (configurable with `testResultsDirectory`):
 
-### Using `nyc` with `good-vibes`
-
-First install `nyc` as a dev dependency
-
-```bash
-npm install nyc --save-dev
+```javascript
+run({ reportTestResults: true });
 ```
 
-Next update your `package.json` scripts section to add a coverage script to run `nyc`
+A group named `My Group` produces `test-results/my-group.tap`:
+
+```text
+TAP version 13
+1..2
+ok 1 My Test
+not ok 2 My Other Test
+  ---
+  message: "Something went wrong"
+  ...
+```
+
+## Output colors
+
+Passing tests are printed in green and failing ones in red. Set the [`NO_COLOR`](https://no-color.org) environment variable to turn colors off.
+
+## TypeScript
+
+good-vibes is written in TypeScript and ships with its type declarations, no `@types` package is needed. Types for the test context and options are exported too:
+
+```typescript
+import run, { test, type Options, type TestContext } from "good-vibes";
+
+const expectGreeting = (ctx: TestContext, actual: string) =>
+  ctx.check("Hello, World!", actual);
+
+test("Greeting", (ctx) => {
+  expectGreeting(ctx, "Hello, World!").done();
+});
+
+const options: Options = { timeout: 60_000 };
+run(options);
+```
+
+## Code Coverage
+
+Code coverage reports can be generated using [`c8`](https://github.com/bcoe/c8), which uses the code coverage built into Node.js. (`nyc` works as well.)
+
+### Using `c8` with `good-vibes`
+
+First install `c8` as a dev dependency
+
+```bash
+npm install --save-dev c8
+```
+
+Next update your `package.json` scripts section to add a coverage script to run `c8`
 
 ```json
 {
@@ -560,7 +661,7 @@ Next update your `package.json` scripts section to add a coverage script to run 
   "version": "0.0.1",
   "scripts": {
     "test": "node test/code.test.js",
-    "coverage": "nyc --reporter=lcov --reporter=text-summary npm run test"
+    "coverage": "c8 --reporter=lcov --reporter=text-summary npm run test"
   }
 }
 ```
@@ -579,10 +680,31 @@ This can be found inside the `/coverage` folder, a sample report is shown below:
 
 ## Examples
 
-- Simple tests can be found in [test/simple.test.js](./test/simple.test.js)
-- Test grouping with use of `before` and `after` can be found in [test/groups.test.js](./test/groups.test.js)
-- Example of `snapshot` tests can be found in [test/snapshot.test.js](./test/snapshot.test.js)
-- A concise example of groups using the `group` api can be found in [test/concise-groups.test.js](./test/concise-groups.test.js)
-- Examples of `sync` tests can be found in [test/synchronous.test.js](./test/synchronous.test.js)
-- Examples of failing tests can be found in [test/failing.test.js](./test/failing.test.js)
-- Example of how `debug` mode works can be found in [test/debug.test.js](./test/debug.test.js)
+Runnable examples live in the [examples](./examples) directory, run them with `npm run examples`:
+
+- Simple tests can be found in [examples/simple.test.mjs](./examples/simple.test.mjs)
+- Test grouping with use of `before` and `after` can be found in [examples/groups.test.mjs](./examples/groups.test.mjs)
+- Example of `snapshot` tests can be found in [examples/snapshot.test.mjs](./examples/snapshot.test.mjs)
+- A concise example of groups using the `group` api can be found in [examples/concise-groups.test.mjs](./examples/concise-groups.test.mjs)
+- Examples of `sync` tests can be found in [examples/synchronous.test.mjs](./examples/synchronous.test.mjs)
+- Examples of failing tests can be found in [examples/failing.test.mjs](./examples/failing.test.mjs)
+- Example of how `debug` mode works can be found in [examples/debug.test.mjs](./examples/debug.test.mjs)
+- All of them are run from a single entry point, [examples/index.mjs](./examples/index.mjs)
+
+## Development
+
+You will need Node.js 22.18 or later (the version in [`.nvmrc`](./.nvmrc) is recommended, run `nvm use` to switch to it).
+
+```bash
+npm install          # install dependencies and git hooks
+npm test             # build and run the test suite
+npm run coverage     # run the test suite with code coverage
+npm run lint         # check code style with ESLint and Prettier
+npm run typecheck    # type check the library and tests
+npm run format       # fix formatting
+npm run examples     # build and run the examples
+```
+
+The test suite uses the [Node.js test runner](https://nodejs.org/api/test.html). Because good-vibes exits the process once its tests finish, each test runs a script from [test/fixtures](./test/fixtures) in a child process and checks its output, return code and the files it writes.
+
+To publish a new version, update the version in `package.json` and [CHANGELOG.md](./CHANGELOG.md), then create a GitHub release. The release workflow tests and publishes the package.
