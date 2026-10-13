@@ -54,4 +54,4 @@
 - New test suite using the Node.js test runner that checks return codes, output, snapshots and reports; the previous suite always exited with return code 0.
 - A consumer check (`npm run test:consumer`) installs the packed package in a project set up like glitch-db and checks type checking, linting, the command and coverage work there.
 - Examples moved to the `examples` directory and run with the `good-vibes` command.
-- CI runs on Node.js 24 and 26 and checks the package with `publint` and `@arethetypeswrong/cli`; releases are published with npm provenance.
+- CI runs on Node.js 24 and 26 and checks the package with `publint` and `@arethetypeswrong/cli`; releases are published with npm trusted publishing and provenance. Code scanning uses CodeQL's default setup.
