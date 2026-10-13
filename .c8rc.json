@@ -2,5 +2,5 @@
   "src": ["src"],
   "include": ["src/**", "lib/**"],
   "exclude-after-remap": true,
-  "reporter": ["text", "lcov"]
+  "reporter": ["text", "html"]
 }

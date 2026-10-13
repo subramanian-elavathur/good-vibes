@@ -1,6 +1,6 @@
 # good-vibes
 
-[![CI](https://github.com/subramanian-elavathur/good-vibes/actions/workflows/ci.yml/badge.svg)](https://github.com/subramanian-elavathur/good-vibes/actions/workflows/ci.yml) [![codecov](https://codecov.io/gh/subramanian-elavathur/good-vibes/branch/main/graph/badge.svg?token=1D68W4DNN1)](https://codecov.io/gh/subramanian-elavathur/good-vibes) [![npm-version](https://img.shields.io/npm/v/good-vibes?color=blue)](https://www.npmjs.com/package/good-vibes) [![license](https://img.shields.io/npm/l/good-vibes)](./LICENSE)
+[![CI](https://github.com/subramanian-elavathur/good-vibes/actions/workflows/ci.yml/badge.svg)](https://github.com/subramanian-elavathur/good-vibes/actions/workflows/ci.yml) [![npm-version](https://img.shields.io/npm/v/good-vibes?color=blue)](https://www.npmjs.com/package/good-vibes) [![license](https://img.shields.io/npm/l/good-vibes)](./LICENSE)
 
 Good Vibes is a simple Node.js testing library designed to make writing and executing tests easy and fun.
 

@@ -33,7 +33,7 @@
 
 - Replaced the deprecated `lodash.isequal` package with `lodash` (same comparison) and upgraded `diff` to v9.
 - Upgraded to TypeScript 6, ESLint 10 (flat config with type-aware rules), Prettier 3, husky 9 and lint-staged 16. `npm audit` now reports no vulnerabilities.
-- Replaced the deprecated `codecov` uploader with the Codecov GitHub Action and `nyc` with `c8`.
+- Removed Codecov and replaced `nyc` with `c8`. Coverage is printed in the CI logs.
 - New test suite using the Node.js test runner that checks return codes, output, snapshots and reports; the previous suite always exited with return code 0.
 - Examples moved to the `examples` directory.
 - CI runs on Node.js 22, 24 and 26 and checks the published types with `@arethetypeswrong/cli`; releases are published with npm provenance.
